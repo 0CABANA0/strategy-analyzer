@@ -1,15 +1,25 @@
 /**
  * OpenRouter API 프로바이더
- * OpenAI 호환 API — Vite 프록시: /api/openrouter → https://openrouter.ai
+ * 개발: Vite 프록시(/api/openrouter) 경유
+ * 프로덕션: OpenRouter API 직접 호출 (CORS 지원)
  */
 import type { AiCallParams, OpenRouterResponse, OpenRouterErrorBody } from '../types'
 import { NetworkError, AuthError, RateLimitError, ApiError } from '../utils/errors'
+
+function getApiUrl(): string {
+  // 개발 환경: Vite 프록시 사용
+  if (import.meta.env.DEV) {
+    return '/api/openrouter/api/v1/chat/completions'
+  }
+  // 프로덕션: OpenRouter 직접 호출
+  return 'https://openrouter.ai/api/v1/chat/completions'
+}
 
 export async function callOpenRouter({ apiKey, model, system, user, temperature, maxTokens }: AiCallParams): Promise<string> {
   let response: Response
 
   try {
-    response = await fetch('/api/openrouter/api/v1/chat/completions', {
+    response = await fetch(getApiUrl(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

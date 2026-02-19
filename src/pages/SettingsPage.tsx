@@ -28,7 +28,10 @@ export default function SettingsPage() {
 
     setTestingKey(true)
     try {
-      const response = await fetch('/api/openrouter/api/v1/models', {
+      const modelsUrl = import.meta.env.DEV
+        ? '/api/openrouter/api/v1/models'
+        : 'https://openrouter.ai/api/v1/models'
+      const response = await fetch(modelsUrl, {
         headers: {
           'Authorization': `Bearer ${apiKey}`,
         },

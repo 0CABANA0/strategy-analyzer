@@ -27,7 +27,7 @@ export default function App() {
   useTheme()
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <SettingsProvider>
         <StrategyProvider>
           <ToastProvider>
