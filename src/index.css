@@ -98,8 +98,84 @@ body {
   animation: slideInLeft 0.25s ease-out;
 }
 
-/* 프린트 스타일 */
+/* 프린트 스타일 — 브라우저 인쇄(Ctrl+P) + html2pdf.js 공용 */
+@page {
+  size: A4;
+  margin: 15mm 12mm 20mm 12mm;
+}
+
 @media print {
-  .no-print { display: none !important; }
-  body { background: white; }
+  .no-print,
+  .no-print * { display: none !important; }
+
+  html, body {
+    background: white !important;
+    color: #1e293b !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 12pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 다크 모드 무력화 — 항상 라이트 모드로 인쇄 */
+  .dark { color-scheme: light; }
+
+  /* 미리보기 컨테이너 */
+  #document-preview {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    background: white !important;
+  }
+
+  /* 색상 보존 (배경색, 테이블 줄무늬 등) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 텍스트 강제 라이트 모드 색상 */
+  #document-preview h1,
+  #document-preview h2,
+  #document-preview h3 { color: #111827 !important; }
+  #document-preview p,
+  #document-preview li,
+  #document-preview td,
+  #document-preview span { color: #374151 !important; }
+  #document-preview th { color: #1f2937 !important; }
+
+  /* 테이블 인쇄 최적화 */
+  #document-preview table {
+    border-collapse: collapse !important;
+    border: 2px solid #d1d5db !important;
+  }
+  #document-preview thead { display: table-header-group; }
+  #document-preview thead tr { background-color: #e5e7eb !important; }
+  #document-preview tbody tr:nth-child(even) { background-color: #f9fafb !important; }
+  #document-preview th,
+  #document-preview td {
+    border: 1px solid #d1d5db !important;
+    padding: 6px 10px !important;
+  }
+  #document-preview th { font-weight: 700 !important; }
+  #document-preview td:first-child { font-weight: 500 !important; }
+
+  /* 페이지 분할 제어 */
+  h2 { break-after: avoid !important; }
+  h3, h4 { break-after: avoid !important; }
+  table, figure, .break-inside-avoid { break-inside: avoid !important; }
+  tr { break-inside: avoid !important; }
+
+  /* 링크 URL 표시 안 함 */
+  a::after { content: none !important; }
+
+  /* 애니메이션 제거 */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

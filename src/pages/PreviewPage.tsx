@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { useStrategy } from '../hooks/useStrategyDocument'
 import DocumentPreview from '../components/preview/DocumentPreview'
-import { ArrowLeft, Download, FileText } from 'lucide-react'
+import { ArrowLeft, FileText, Globe } from 'lucide-react'
+import { exportHtml } from '../utils/exportHtml'
 import { exportMarkdown } from '../utils/exportMarkdown'
-import { exportPdf } from '../utils/exportPdf'
 
 export default function PreviewPage() {
   const { state } = useStrategy()
@@ -14,12 +14,12 @@ export default function PreviewPage() {
     return null
   }
 
-  const handleMarkdown = () => {
-    exportMarkdown(state)
+  const handleHtml = () => {
+    exportHtml(state)
   }
 
-  const handlePdf = () => {
-    exportPdf(state)
+  const handleMarkdown = () => {
+    exportMarkdown(state)
   }
 
   return (
@@ -34,18 +34,18 @@ export default function PreviewPage() {
         </button>
         <div className="flex gap-2">
           <button
+            onClick={handleHtml}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Globe className="w-4 h-4" />
+            HTML
+          </button>
+          <button
             onClick={handleMarkdown}
             className="flex items-center gap-1.5 px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
             <FileText className="w-4 h-4" />
             Markdown
-          </button>
-          <button
-            onClick={handlePdf}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            PDF
           </button>
         </div>
       </div>

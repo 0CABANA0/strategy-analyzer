@@ -137,13 +137,35 @@ function convertOklchInClone(clonedDoc: Document) {
     }
   }
 
-  // ⑤ Tailwind CSS 변수 오버라이드 (안전망)
+  // ⑤ Tailwind CSS 변수 오버라이드 + PDF 렌더링 품질 강화
   const overrideStyle = clonedDoc.createElement('style')
   overrideStyle.textContent = `
     *, *::before, *::after {
       --tw-ring-color: rgb(59, 130, 246) !important;
       --tw-ring-offset-color: rgb(255, 255, 255) !important;
       --tw-shadow-color: transparent !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    #document-preview {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    #document-preview table {
+      border-collapse: collapse;
+    }
+    #document-preview thead tr {
+      background-color: rgb(229, 231, 235) !important;
+    }
+    #document-preview tbody tr:nth-child(even) {
+      background-color: rgb(249, 250, 251) !important;
+    }
+    #document-preview th {
+      font-weight: 700 !important;
+    }
+    #document-preview td:first-child {
+      font-weight: 500 !important;
     }
   `
   clonedDoc.head.appendChild(overrideStyle)
@@ -163,18 +185,20 @@ export async function exportPdf(state: StrategyDocument): Promise<void> {
 
   // 모바일: scale 축소로 canvas 크기 제한 대응
   const mobile = isMobile()
-  const scale = mobile ? 1 : 2
+  const scale = mobile ? 2 : 3
 
   const filename = `${state.businessItem}_전략PRD_${new Date().toISOString().split('T')[0]}.pdf`
 
   const opt = {
-    margin: [10, 10, 10, 10] as [number, number, number, number],
+    margin: [15, 12, 20, 12] as [number, number, number, number],
     filename,
-    image: { type: 'jpeg' as const, quality: mobile ? 0.92 : 0.98 },
+    image: { type: 'png' as const },
     html2canvas: {
       scale,
       useCORS: true,
       letterRendering: true,
+      logging: false,
+      removeContainer: true,
       windowWidth: element.scrollWidth,
       onclone: convertOklchInClone,
     },
@@ -182,6 +206,7 @@ export async function exportPdf(state: StrategyDocument): Promise<void> {
       unit: 'mm',
       format: 'a4',
       orientation: 'portrait' as const,
+      compress: true,
     },
     pagebreak: { mode: ['css', 'legacy'] as string[] },
   }

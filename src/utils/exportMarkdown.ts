@@ -10,14 +10,19 @@ function listToMd(items: string[]): string {
   return items.map((item) => `- ${item}`).join('\n') + '\n'
 }
 
+function escapeCell(value: unknown): string {
+  const s = String(value ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ').trim()
+  return s || '-'
+}
+
 function tableToMd(columns: string[], rows: unknown[]): string {
   if (!rows?.length) return '_데이터 없음_\n'
-  const header = '| ' + columns.join(' | ') + ' |'
+  const header = '| ' + columns.map(escapeCell).join(' | ') + ' |'
   const separator = '| ' + columns.map(() => '---').join(' | ') + ' |'
   const body = rows
     .map((row) => {
       const cells = Array.isArray(row) ? row : Object.values(row as Record<string, unknown>)
-      return '| ' + cells.join(' | ') + ' |'
+      return '| ' + cells.map(escapeCell).join(' | ') + ' |'
     })
     .join('\n')
   return header + '\n' + separator + '\n' + body + '\n'
@@ -35,13 +40,19 @@ function frameworkToMd(id: string, data: Record<string, unknown>): string {
     if (value === undefined || value === null) continue
 
     if (fieldDef.type === 'list') {
-      md += `**${fieldDef.label}**\n${listToMd(value as string[])}\n`
+      md += `**${fieldDef.label}**\n\n${listToMd(value as string[])}\n`
     } else if (fieldDef.type === 'text' || fieldDef.type === 'select') {
-      md += `**${fieldDef.label}**: ${value}\n\n`
+      const strVal = String(value)
+      if (strVal.includes('\n')) {
+        // 멀티라인 텍스트 (임베디드 테이블 등) → 블록 형태로 출력
+        md += `**${fieldDef.label}**\n\n${strVal}\n\n`
+      } else {
+        md += `**${fieldDef.label}**: ${strVal}\n\n`
+      }
     } else if (fieldDef.type === 'table') {
-      md += `**${fieldDef.label}**\n${tableToMd(fieldDef.columns, value as unknown[])}\n`
+      md += `**${fieldDef.label}**\n\n${tableToMd(fieldDef.columns, value as unknown[])}\n`
     } else if (fieldDef.type === 'object') {
-      md += `**${fieldDef.label}**\n`
+      md += `**${fieldDef.label}**\n\n`
       if (typeof value === 'object' && value !== null) {
         for (const [subKey, subVal] of Object.entries(value as Record<string, unknown>)) {
           const subLabel = fieldDef.subfields?.[subKey] || subKey
