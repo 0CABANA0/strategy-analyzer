@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
-import { Brain, Loader2, Mail } from 'lucide-react'
+import { Loader2, Mail } from 'lucide-react'
+import AppIcon from '../components/common/AppIcon'
 
 export default function ForgotPasswordPage() {
   const toast = useToast()
@@ -33,7 +34,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Brain className="w-10 h-10 text-primary-600 mx-auto mb-3" />
+          <AppIcon className="w-10 h-10 mx-auto mb-3" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">비밀번호 재설정</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">가입한 이메일로 재설정 링크를 보내드립니다</p>
         </div>

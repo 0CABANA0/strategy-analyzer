@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Brain, History, Settings, FileText, Sun, Moon, Menu, Shield, LogOut, LucideIcon } from 'lucide-react'
+import { Home, History, Settings, FileText, Sun, Moon, Menu, Shield, LogOut, LucideIcon } from 'lucide-react'
+import AppIcon from '../common/AppIcon'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { useTheme } from '../../hooks/useTheme'
 import { useMobileSidebar } from '../../hooks/useMobileSidebar'
@@ -20,7 +21,7 @@ export default function Header() {
   const { user, isAdmin, signOut } = useAuth()
 
   const navItems: NavItem[] = [
-    { to: '/', icon: Brain, label: '홈' },
+    { to: '/', icon: Home, label: '홈' },
     { to: '/history', icon: History, label: '히스토리' },
     { to: '/settings', icon: Settings, label: '설정' },
     ...(isAdmin ? [{ to: '/admin', icon: Shield, label: '관리자' }] as NavItem[] : []),
@@ -44,7 +45,7 @@ export default function Header() {
             </button>
           )}
           <Link to="/" className="flex items-center gap-2 text-gray-900 dark:text-gray-100 no-underline">
-            <Brain className="w-6 h-6 text-primary-600" />
+            <AppIcon className="w-6 h-6" />
             <span className="font-bold text-lg hidden sm:inline">전략분석기</span>
           </Link>
         </div>

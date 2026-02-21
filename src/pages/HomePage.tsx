@@ -4,7 +4,8 @@ import { useStrategy } from '../hooks/useStrategyDocument'
 import { useSettings } from '../hooks/useSettings'
 import { useRecommendation } from '../hooks/useRecommendation'
 import RecommendationPanel from '../components/recommendation/RecommendationPanel'
-import { Brain, ArrowRight, AlertCircle, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowRight, AlertCircle, Sparkles, Wand2 } from 'lucide-react'
+import AppIcon from '../components/common/AppIcon'
 
 const EXAMPLES: string[] = [
   'AI 기반 식단관리 앱',
@@ -56,7 +57,7 @@ export default function HomePage() {
       <div className="w-full max-w-xl animate-fade-in">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/40 mb-4">
-            <Brain className="w-8 h-8 text-primary-600" />
+            <AppIcon className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">전략분석기</h1>
           <p className="text-gray-500 dark:text-gray-400">
