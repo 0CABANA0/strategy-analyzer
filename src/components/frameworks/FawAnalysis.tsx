@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import type { FawData } from '../../types'
 
-export default function FawAnalysis() {
+function FawAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.faw?.data as FawData | undefined
 
@@ -15,3 +16,5 @@ export default function FawAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(FawAnalysis)

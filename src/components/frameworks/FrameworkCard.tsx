@@ -2,23 +2,9 @@ import React, { useState } from 'react'
 import { FRAMEWORKS } from '../../data/frameworkDefinitions'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { useAiGeneration } from '../../hooks/useAiGeneration'
-import { Sparkles, RotateCcw, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Star, ThumbsUp } from 'lucide-react'
-import type { RecommendationResult, FrameworkRecommendation } from '../../types'
+import { Sparkles, RotateCcw, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Star, ThumbsUp, X } from 'lucide-react'
+import { getRecommendationInfo } from '../../utils/recommendation'
 import FrameworkCardSkeleton from './FrameworkCardSkeleton'
-
-function getRecommendationInfo(
-  frameworkId: string,
-  recommendation?: RecommendationResult
-): { level: 'essential' | 'recommended' | 'optional'; item: FrameworkRecommendation } | null {
-  if (!recommendation) return null
-  const essential = recommendation.essential.find((r) => r.id === frameworkId)
-  if (essential) return { level: 'essential', item: essential }
-  const recommended = recommendation.recommended.find((r) => r.id === frameworkId)
-  if (recommended) return { level: 'recommended', item: recommended }
-  const optional = recommendation.optional.find((r) => r.id === frameworkId)
-  if (optional) return { level: 'optional', item: optional }
-  return null
-}
 
 const LEVEL_BADGE = {
   essential: { icon: Star, className: 'text-red-500 bg-red-50 dark:bg-red-900/30', label: '필수' },
@@ -34,7 +20,7 @@ interface FrameworkCardProps {
 export default function FrameworkCard({ frameworkId, children }: FrameworkCardProps) {
   const fw = FRAMEWORKS[frameworkId]
   const { state, clearFramework } = useStrategy()
-  const { generate } = useAiGeneration()
+  const { generate, cancel } = useAiGeneration()
   const fState = state?.frameworks[frameworkId]
   const [collapsed, setCollapsed] = useState(false)
 
@@ -97,27 +83,24 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
           )}
-          <button
-            onClick={handleGenerate}
-            disabled={status === 'generating'}
-            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-              status === 'generating'
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
-                : 'bg-primary-600 text-white hover:bg-primary-700'
-            }`}
-          >
-            {status === 'generating' ? (
-              <>
-                <Loader2 className="w-3 h-3 animate-spin" />
-                생성중...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-3 h-3" />
-                AI 생성
-              </>
-            )}
-          </button>
+          {status === 'generating' ? (
+            <button
+              onClick={cancel}
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+              aria-label="AI 생성 취소"
+            >
+              <X className="w-3 h-3" />
+              취소
+            </button>
+          ) : (
+            <button
+              onClick={handleGenerate}
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-primary-600 text-white hover:bg-primary-700"
+            >
+              <Sparkles className="w-3 h-3" />
+              AI 생성
+            </button>
+          )}
         </div>
       </div>
 

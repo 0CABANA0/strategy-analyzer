@@ -1,4 +1,5 @@
 import React from 'react'
+import ErrorBoundary from '../common/ErrorBoundary'
 import FawAnalysis from './FawAnalysis'
 import ThreeCAnalysis from './ThreeCAnalysis'
 import AnsoffMatrix from './AnsoffMatrix'
@@ -103,7 +104,11 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
         {frameworkIds.map((fId: string) => {
           const Component = COMPONENT_MAP[fId]
           if (!Component) return null
-          return <Component key={fId} />
+          return (
+            <ErrorBoundary key={fId}>
+              <Component />
+            </ErrorBoundary>
+          )
         })}
       </div>
     </div>

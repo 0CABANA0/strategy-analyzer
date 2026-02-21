@@ -24,7 +24,7 @@ const SUPPORT: ActivityDef[] = [
   { key: 'procurement', label: '조달' },
 ]
 
-export default function ValueChainAnalysis() {
+function ValueChainAnalysis() {
   const { state, updateFrameworkField } = useStrategy()
   const data = state?.frameworks.valueChain?.data as ValueChainData | undefined
 
@@ -87,3 +87,5 @@ export default function ValueChainAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default React.memo(ValueChainAnalysis)

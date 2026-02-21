@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField, DataTable } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import type { WbsData } from '../../types'
 
-export default function WbsSchedule() {
+function WbsSchedule() {
   const { state } = useStrategy()
   const data = state?.frameworks.wbs?.data as WbsData | undefined
 
@@ -18,3 +19,5 @@ export default function WbsSchedule() {
     </FrameworkCard>
   )
 }
+
+export default memo(WbsSchedule)

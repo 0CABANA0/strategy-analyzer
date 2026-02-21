@@ -3,21 +3,7 @@ import { FRAMEWORKS } from '../../data/frameworkDefinitions'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { useWizard } from '../../hooks/useWizard'
 import { CheckCircle2, Circle, Loader2, Star, ThumbsUp } from 'lucide-react'
-import type { RecommendationResult, FrameworkRecommendation } from '../../types'
-
-function getRecommendationInfo(
-  frameworkId: string,
-  recommendation?: RecommendationResult
-): { level: 'essential' | 'recommended' | 'optional'; item: FrameworkRecommendation } | null {
-  if (!recommendation) return null
-  const essential = recommendation.essential.find((r) => r.id === frameworkId)
-  if (essential) return { level: 'essential', item: essential }
-  const recommended = recommendation.recommended.find((r) => r.id === frameworkId)
-  if (recommended) return { level: 'recommended', item: recommended }
-  const optional = recommendation.optional.find((r) => r.id === frameworkId)
-  if (optional) return { level: 'optional', item: optional }
-  return null
-}
+import { getRecommendationInfo } from '../../utils/recommendation'
 
 const LEVEL_BADGE = {
   essential: { icon: Star, className: 'text-red-500', title: '필수' },
@@ -91,11 +77,11 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                         className="flex items-center gap-1.5 px-2 py-1 text-xs text-gray-500 dark:text-gray-400"
                       >
                         {fState?.status === 'completed' ? (
-                          <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
+                          <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" aria-hidden="true" />
                         ) : fState?.status === 'generating' ? (
-                          <Loader2 className="w-3 h-3 text-primary-500 animate-spin shrink-0" />
+                          <Loader2 className="w-3 h-3 text-primary-500 animate-spin shrink-0" aria-hidden="true" />
                         ) : (
-                          <Circle className="w-3 h-3 text-gray-300 dark:text-gray-600 shrink-0" />
+                          <Circle className="w-3 h-3 text-gray-300 dark:text-gray-600 shrink-0" aria-hidden="true" />
                         )}
                         <span className="truncate flex-1">{fw.name}</span>
                         {badge && (

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
@@ -17,7 +18,7 @@ const PEST_FIELDS: PestFieldDef[] = [
   { key: 'technological', label: '기술적 (Technological)', hint: 'AI, 디지털전환, 신기술 동향', color: 'bg-purple-400' },
 ]
 
-export default function PestAnalysis() {
+function PestAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.pest?.data as PestData | undefined
 
@@ -37,3 +38,5 @@ export default function PestAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(PestAnalysis)

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
@@ -17,7 +18,7 @@ const KPI_LEVELS: KpiLevelDef[] = [
   { key: 'outcome', label: 'Outcome', desc: '성과 지표', color: 'bg-amber-50 border-amber-300 dark:bg-amber-900/20 dark:border-amber-800' },
 ]
 
-export default function KpiDashboard() {
+function KpiDashboard() {
   const { state } = useStrategy()
   const data = state?.frameworks.kpi?.data as KpiData | undefined
 
@@ -35,20 +36,17 @@ export default function KpiDashboard() {
       </div>
 
       <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">KPI 체계 (Input → Throughput → Output → Outcome)</div>
-      <div className="flex gap-1">
-        {KPI_LEVELS.map(({ key, label, desc, color }, i: number) => (
-          <div key={key} className="flex items-center flex-1">
-            <div className={`flex-1 rounded-lg border p-2 ${color}`}>
-              <div className="text-[10px] font-bold text-gray-700 dark:text-gray-300 text-center">{label}</div>
-              <div className="text-[9px] text-gray-400 dark:text-gray-500 text-center mb-1">{desc}</div>
-              <ListField frameworkId="kpi" fieldKey={key} label="" items={data?.[key]} />
-            </div>
-            {i < KPI_LEVELS.length - 1 && (
-              <span className="text-gray-300 dark:text-gray-600 px-0.5 shrink-0">→</span>
-            )}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {KPI_LEVELS.map(({ key, label, desc, color }) => (
+          <div key={key} className={`rounded-lg border p-2 min-w-0 overflow-hidden ${color}`}>
+            <div className="text-[10px] font-bold text-gray-700 dark:text-gray-300 text-center">{label}</div>
+            <div className="text-[9px] text-gray-400 dark:text-gray-500 text-center mb-1">{desc}</div>
+            <ListField frameworkId="kpi" fieldKey={key} label="" items={data?.[key]} />
           </div>
         ))}
       </div>
     </FrameworkCard>
   )
 }
+
+export default memo(KpiDashboard)

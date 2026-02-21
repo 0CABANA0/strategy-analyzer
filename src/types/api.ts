@@ -5,6 +5,7 @@ export interface AiCallParams {
   user: string
   temperature?: number
   maxTokens?: number
+  signal?: AbortSignal
 }
 
 export interface PromptResult {

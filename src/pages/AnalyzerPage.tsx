@@ -4,12 +4,10 @@ import { useStrategy } from '../hooks/useStrategyDocument'
 import { useWizard } from '../hooks/useWizard'
 import WizardShell from '../components/wizard/WizardShell'
 import SectionContainer from '../components/frameworks/SectionContainer'
-import { useDocumentList } from '../hooks/useLocalStorage'
 
 export default function AnalyzerPage() {
   const { state } = useStrategy()
   const { currentStep } = useWizard()
-  const { addDocument, docs } = useDocumentList()
   const navigate = useNavigate()
 
   // 사업 아이템이 없으면 홈으로
@@ -18,20 +16,6 @@ export default function AnalyzerPage() {
       navigate('/', { replace: true })
     }
   }, [state?.businessItem, navigate])
-
-  // 히스토리에 자동 등록
-  useEffect(() => {
-    if (!state?.id || !state?.businessItem) return
-    const exists = docs.some((d) => d.id === state.id)
-    if (!exists) {
-      addDocument({
-        id: state.id,
-        businessItem: state.businessItem,
-        createdAt: state.createdAt,
-        updatedAt: state.updatedAt,
-      })
-    }
-  }, [state?.id])
 
   if (!state?.businessItem) return null
 

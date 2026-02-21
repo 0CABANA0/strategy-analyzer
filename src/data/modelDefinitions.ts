@@ -59,6 +59,17 @@ export const MODELS: ModelDefinition[] = [
 
   // === 프리미엄 ===
   {
+    id: 'google/gemini-3.1-pro-preview',
+    name: 'Gemini 3.1 Pro',
+    provider: 'Google',
+    category: 'premium',
+    context: '1M',
+    inputPrice: 1.25,
+    outputPrice: 10.00,
+    badge: '최신',
+    description: '최신 Gemini 3.1 Pro. Thinking 기능, 최상위 벤치마크. 복잡한 전략 분석에 탁월',
+  },
+  {
     id: 'google/gemini-2.5-pro',
     name: 'Gemini 2.5 Pro',
     provider: 'Google',
@@ -113,7 +124,7 @@ export const MODELS: ModelDefinition[] = [
   },
 ]
 
-export const DEFAULT_MODEL: string = 'google/gemini-2.5-flash'
+export const DEFAULT_MODEL: string = 'google/gemini-3.1-pro-preview'
 
 export function getModelById(id: string): ModelDefinition | undefined {
   return MODELS.find((m) => m.id === id)

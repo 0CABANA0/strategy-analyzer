@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
@@ -31,7 +32,7 @@ const CROSS: CrossDef[] = [
   { key: 'wt', label: 'WT 전략', hint: '약점·위협 최소화', color: 'bg-rose-50 border-rose-200 dark:bg-rose-900/20 dark:border-rose-800' },
 ]
 
-export default function SwotAnalysis() {
+function SwotAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.swot?.data as SwotData | undefined
 
@@ -71,3 +72,5 @@ export default function SwotAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(SwotAnalysis)

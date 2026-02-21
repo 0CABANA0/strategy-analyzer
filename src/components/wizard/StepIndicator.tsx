@@ -8,7 +8,7 @@ export default function StepIndicator() {
   const { getStepProgress } = useStrategy()
 
   return (
-    <div className="flex items-center justify-center gap-1 py-4">
+    <div className="flex items-center justify-center gap-0.5 sm:gap-1 py-4 overflow-x-auto">
       {SECTIONS.map((section, idx: number) => {
         const progress = getStepProgress(section.number)
         const isActive = currentStep === section.number
@@ -19,7 +19,7 @@ export default function StepIndicator() {
           <div key={section.number} className="flex items-center">
             <button
               onClick={() => goToStep(section.number)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 ${
                 isActive
                   ? 'bg-primary-600 text-white shadow-md'
                   : isComplete
@@ -39,7 +39,7 @@ export default function StepIndicator() {
               <span className="hidden sm:inline">{section.title}</span>
             </button>
             {idx < SECTIONS.length - 1 && (
-              <div className={`w-6 h-0.5 mx-0.5 rounded ${
+              <div className={`w-3 sm:w-6 h-0.5 mx-0.5 rounded shrink-0 ${
                 isPast || isComplete ? 'bg-primary-300 dark:bg-primary-700' : 'bg-gray-200 dark:bg-gray-700'
               }`} />
             )}

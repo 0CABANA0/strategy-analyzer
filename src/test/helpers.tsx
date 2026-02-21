@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
+import { AuthProvider } from '../hooks/useAuth'
 import { StrategyProvider } from '../hooks/useStrategyDocument'
 import { SettingsProvider } from '../hooks/useSettings'
 import { ToastProvider } from '../hooks/useToast'
@@ -9,17 +10,19 @@ import { MobileSidebarProvider } from '../hooks/useMobileSidebar'
 function AllProviders({ children }: { children: React.ReactNode }) {
   return (
     <BrowserRouter>
-      <SettingsProvider>
-        <StrategyProvider>
-          <ToastProvider>
-            <MobileSidebarProvider>
-              <Suspense fallback={null}>
-                {children}
-              </Suspense>
-            </MobileSidebarProvider>
-          </ToastProvider>
-        </StrategyProvider>
-      </SettingsProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <SettingsProvider>
+            <StrategyProvider>
+              <MobileSidebarProvider>
+                <Suspense fallback={null}>
+                  {children}
+                </Suspense>
+              </MobileSidebarProvider>
+            </StrategyProvider>
+          </SettingsProvider>
+        </ToastProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

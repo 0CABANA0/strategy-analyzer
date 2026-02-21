@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabase'
 import type { DocumentMeta } from '../types'
 
 const STORAGE_PREFIX = 'strategy-analyzer:'
@@ -31,28 +32,54 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
   return [value, setValue, remove]
 }
 
-/** 문서 목록 관리 */
+/** 문서 목록 관리 (Supabase 기반) */
 export function useDocumentList() {
-  const [docs, setDocs] = useLocalStorage<DocumentMeta[]>('documents', [])
+  const [docs, setDocs] = useState<DocumentMeta[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const addDocument = useCallback((doc: DocumentMeta) => {
-    setDocs((prev) => [doc, ...prev])
-  }, [setDocs])
+  // Supabase에서 문서 목록 로드
+  const fetchDocs = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) {
+      setDocs([])
+      setIsLoading(false)
+      return
+    }
+    const { data, error } = await supabase
+      .from('strategy_documents')
+      .select('id, business_item, created_at, updated_at')
+      .eq('user_id', session.user.id)
+      .order('updated_at', { ascending: false })
+    if (error) {
+      console.warn('문서 목록 조회 실패:', error.message)
+      setIsLoading(false)
+      return
+    }
+    setDocs((data ?? []).map((d) => ({
+      id: d.id,
+      businessItem: d.business_item,
+      createdAt: d.created_at,
+      updatedAt: d.updated_at,
+    })))
+    setIsLoading(false)
+  }, [])
 
-  const removeDocument = useCallback((id: string) => {
+  useEffect(() => {
+    fetchDocs()
+  }, [fetchDocs])
+
+  const removeDocument = useCallback(async (id: string) => {
     setDocs((prev) => prev.filter((d) => d.id !== id))
     localStorage.removeItem(STORAGE_PREFIX + 'doc:' + id)
-  }, [setDocs])
+    await supabase.from('strategy_documents').delete().eq('id', id)
+  }, [])
 
-  const removeDocuments = useCallback((ids: string[]) => {
+  const removeDocuments = useCallback(async (ids: string[]) => {
     const idSet = new Set(ids)
     setDocs((prev) => prev.filter((d) => !idSet.has(d.id)))
     ids.forEach((id) => localStorage.removeItem(STORAGE_PREFIX + 'doc:' + id))
-  }, [setDocs])
+    await supabase.from('strategy_documents').delete().in('id', ids)
+  }, [])
 
-  const updateDocumentMeta = useCallback((id: string, meta: Partial<DocumentMeta>) => {
-    setDocs((prev) => prev.map((d) => (d.id === id ? { ...d, ...meta } : d)))
-  }, [setDocs])
-
-  return { docs, addDocument, removeDocument, removeDocuments, updateDocumentMeta }
+  return { docs, isLoading, removeDocument, removeDocuments, refreshDocs: fetchDocs }
 }

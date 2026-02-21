@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField, DataTable } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import type { CompetitorData } from '../../types'
 
-export default function CompetitorAnalysis() {
+function CompetitorAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.competitorAnalysis?.data as CompetitorData | undefined
 
@@ -19,3 +20,5 @@ export default function CompetitorAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(CompetitorAnalysis)

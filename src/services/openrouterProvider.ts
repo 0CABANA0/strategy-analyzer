@@ -15,7 +15,7 @@ function getApiUrl(): string {
   return 'https://openrouter.ai/api/v1/chat/completions'
 }
 
-export async function callOpenRouter({ apiKey, model, system, user, temperature, maxTokens }: AiCallParams): Promise<string> {
+export async function callOpenRouter({ apiKey, model, system, user, temperature, maxTokens, signal }: AiCallParams): Promise<string> {
   let response: Response
 
   try {
@@ -37,8 +37,10 @@ export async function callOpenRouter({ apiKey, model, system, user, temperature,
         max_tokens: maxTokens ?? 8192,
         response_format: { type: 'json_object' },
       }),
+      signal,
     })
-  } catch {
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') throw err
     throw new NetworkError()
   }
 
@@ -59,5 +61,9 @@ export async function callOpenRouter({ apiKey, model, system, user, temperature,
   }
 
   const data: OpenRouterResponse = await response.json()
-  return data.choices?.[0]?.message?.content || ''
+  const content = data.choices?.[0]?.message?.content
+  if (!content) {
+    throw new ApiError('AI 모델이 빈 응답을 반환했습니다. 다시 시도해 주세요.', response.status, true)
+  }
+  return content
 }

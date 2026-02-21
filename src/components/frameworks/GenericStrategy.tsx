@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { TextField, ListField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
@@ -17,7 +18,7 @@ const STRATEGIES: StrategyDef[] = [
   { id: '집중(차별화)', label: '집중(차별화)', desc: '틈새시장에서 차별화', color: 'bg-amber-500' },
 ]
 
-export default function GenericStrategy() {
+function GenericStrategy() {
   const { state, updateFrameworkField } = useStrategy()
   const data = state?.frameworks.genericStrategy?.data as GenericStrategyData | undefined
 
@@ -47,3 +48,5 @@ export default function GenericStrategy() {
     </FrameworkCard>
   )
 }
+
+export default memo(GenericStrategy)

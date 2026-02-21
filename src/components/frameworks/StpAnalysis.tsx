@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField, TextField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import type { StpData } from '../../types'
 
-export default function StpAnalysis() {
+function StpAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.stp?.data as StpData | undefined
 
@@ -29,3 +30,5 @@ export default function StpAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(StpAnalysis)

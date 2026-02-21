@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField, TextField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import type { CustomerData } from '../../types'
 
-export default function CustomerAnalysis() {
+function CustomerAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.customerAnalysis?.data as CustomerData | undefined
 
@@ -16,3 +17,5 @@ export default function CustomerAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(CustomerAnalysis)

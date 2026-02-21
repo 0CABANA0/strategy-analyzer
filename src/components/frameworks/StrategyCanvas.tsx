@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField, TextField, DataTable } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import type { StrategyCanvasData } from '../../types'
 
-export default function StrategyCanvas() {
+function StrategyCanvas() {
   const { state } = useStrategy()
   const data = state?.frameworks.strategyCanvas?.data as StrategyCanvasData | undefined
 
@@ -62,3 +63,5 @@ export default function StrategyCanvas() {
     </FrameworkCard>
   )
 }
+
+export default memo(StrategyCanvas)

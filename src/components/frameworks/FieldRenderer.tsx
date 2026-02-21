@@ -64,12 +64,12 @@ export function ListField({ frameworkId, fieldKey, label, hint, items }: ListFie
       </label>
       <div className="space-y-1">
         {(items || []).map((item: string, i: number) => (
-          <div key={i} className="flex gap-1">
+          <div key={i} className="flex gap-1 min-w-0">
             <input
               type="text"
               value={item}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(i, e.target.value)}
-              className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+              className="flex-1 min-w-0 px-2 py-1 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
             />
             <button
               onClick={() => handleRemove(i)}

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { TextField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
@@ -21,7 +22,7 @@ const SOFT_S: SevenSField[] = [
   { key: 'style', label: '스타일 (Style)' },
 ]
 
-export default function SevenSAnalysis() {
+function SevenSAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.sevenS?.data as SevenSData | undefined
 
@@ -59,3 +60,5 @@ export default function SevenSAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(SevenSAnalysis)

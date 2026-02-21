@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
+import { ToastProvider } from '../../hooks/useToast'
 import { StrategyProvider } from '../../hooks/useStrategyDocument'
 import { SettingsProvider } from '../../hooks/useSettings'
 import { useWizard } from '../../hooks/useWizard'
@@ -10,11 +11,13 @@ import { TOTAL_STEPS } from '../../data/sectionDefinitions'
 function AllProviders({ children }: { children: React.ReactNode }) {
   return (
     <BrowserRouter>
-      <SettingsProvider>
-        <StrategyProvider>
-          {children}
-        </StrategyProvider>
-      </SettingsProvider>
+      <ToastProvider>
+        <SettingsProvider>
+          <StrategyProvider>
+            {children}
+          </StrategyProvider>
+        </SettingsProvider>
+      </ToastProvider>
     </BrowserRouter>
   )
 }

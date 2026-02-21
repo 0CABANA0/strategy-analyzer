@@ -1,10 +1,13 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react'
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { FRAMEWORKS } from '../data/frameworkDefinitions'
 import { SECTIONS } from '../data/sectionDefinitions'
-import type { StrategyDocument, FrameworkState, StepProgress, RecommendationResult } from '../types'
+import { supabase } from '../lib/supabase'
+import { useToast } from './useToast'
+import type { StrategyDocument, FrameworkState, FrameworkData, StepProgress, RecommendationResult } from '../types'
 
 const STORAGE_PREFIX = 'strategy-analyzer:'
+const SYNC_DEBOUNCE_MS = 2000
 
 // --- Document Action Discriminated Union ---
 type DocumentAction =
@@ -12,7 +15,7 @@ type DocumentAction =
   | { type: 'LOAD_DOCUMENT'; payload: StrategyDocument }
   | { type: 'SET_STEP'; payload: number }
   | { type: 'SET_FRAMEWORK_GENERATING'; payload: string }
-  | { type: 'SET_FRAMEWORK_DATA'; payload: { id: string; data: Record<string, unknown> } }
+  | { type: 'SET_FRAMEWORK_DATA'; payload: { id: string; data: FrameworkData } }
   | { type: 'SET_FRAMEWORK_ERROR'; payload: { id: string; error: string } }
   | { type: 'CLEAR_FRAMEWORK'; payload: string }
   | { type: 'UPDATE_FRAMEWORK_FIELD'; payload: { id: string; field: string; value: unknown } }
@@ -26,7 +29,7 @@ interface StrategyContextValue {
   loadDocument: (doc: StrategyDocument) => void
   setStep: (step: number) => void
   setFrameworkGenerating: (id: string) => void
-  setFrameworkData: (id: string, data: Record<string, unknown>) => void
+  setFrameworkData: (id: string, data: FrameworkData) => void
   setFrameworkError: (id: string, error: string) => void
   clearFramework: (id: string) => void
   updateFrameworkField: (id: string, field: string, value: unknown) => void
@@ -50,6 +53,12 @@ function createEmptyDocument(businessItem: string = ''): StrategyDocument {
     currentStep: 1,
     frameworks,
   }
+}
+
+/** 프레임워크 데이터의 필드를 안전하게 업데이트 */
+function updateField(data: FrameworkData | null, field: string, value: unknown): FrameworkData {
+  const base = (data ?? {}) as Record<string, unknown>
+  return { ...base, [field]: value } as unknown as FrameworkData
 }
 
 // --- Reducer ---
@@ -80,8 +89,8 @@ function documentReducer(state: StrategyDocument, action: DocumentAction): Strat
         frameworks: {
           ...state.frameworks,
           [action.payload.id]: {
-            status: 'completed' as const,
-            data: action.payload.data as unknown as FrameworkState['data'],
+            status: 'completed',
+            data: action.payload.data,
             updatedAt: new Date().toISOString(),
           },
         },
@@ -118,11 +127,12 @@ function documentReducer(state: StrategyDocument, action: DocumentAction): Strat
           ...state.frameworks,
           [action.payload.id]: {
             ...state.frameworks[action.payload.id],
-            status: 'completed' as const,
-            data: {
-              ...(state.frameworks[action.payload.id]?.data as unknown as Record<string, unknown>),
-              [action.payload.field]: action.payload.value,
-            } as unknown as FrameworkState['data'],
+            status: 'completed',
+            data: updateField(
+              state.frameworks[action.payload.id]?.data ?? null,
+              action.payload.field,
+              action.payload.value,
+            ),
             updatedAt: new Date().toISOString(),
           },
         },
@@ -140,6 +150,7 @@ function documentReducer(state: StrategyDocument, action: DocumentAction): Strat
 const StrategyContext = createContext<StrategyContextValue | null>(null)
 
 export function StrategyProvider({ children }: { children: React.ReactNode }) {
+  const { warning } = useToast()
   const [state, dispatch] = useReducer(documentReducer, null, (): StrategyDocument => {
     // 마지막 작업 문서 복원 시도
     try {
@@ -152,15 +163,41 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
     return createEmptyDocument()
   })
 
-  // 자동 저장
+  // 자동 저장 (localStorage 즉시 + Supabase 디바운스)
+  const syncTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+
   useEffect(() => {
     if (!state?.id) return
+    // localStorage 즉시 저장
     try {
       localStorage.setItem(STORAGE_PREFIX + 'doc:' + state.id, JSON.stringify(state))
       localStorage.setItem(STORAGE_PREFIX + 'lastDocId', state.id)
     } catch (e) {
       console.warn('자동 저장 실패:', e)
     }
+    // Supabase 디바운스 동기화
+    clearTimeout(syncTimer.current)
+    syncTimer.current = setTimeout(() => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session?.user) return
+        supabase.from('strategy_documents').upsert({
+          id: state.id,
+          user_id: session.user.id,
+          business_item: state.businessItem,
+          current_step: state.currentStep,
+          frameworks: state.frameworks,
+          recommendation: state.recommendation ?? null,
+          created_at: state.createdAt,
+          updated_at: state.updatedAt,
+        }, { onConflict: 'id' }).then(({ error }) => {
+          if (error) {
+            console.warn('Supabase 동기화 실패:', error.message)
+            warning('클라우드 동기화에 실패했습니다. 로컬에는 저장되어 있습니다.')
+          }
+        })
+      })
+    }, SYNC_DEBOUNCE_MS)
+    return () => clearTimeout(syncTimer.current)
   }, [state])
 
   // --- Actions ---
@@ -180,7 +217,7 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_FRAMEWORK_GENERATING', payload: id })
   }, [])
 
-  const setFrameworkData = useCallback((id: string, data: Record<string, unknown>) => {
+  const setFrameworkData = useCallback((id: string, data: FrameworkData) => {
     dispatch({ type: 'SET_FRAMEWORK_DATA', payload: { id, data } })
   }, [])
 

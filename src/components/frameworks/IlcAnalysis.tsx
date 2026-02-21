@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField, TextField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
@@ -6,7 +7,7 @@ import type { IlcData } from '../../types'
 const STAGES: string[] = ['도입기', '성장기', '성숙기', '쇠퇴기']
 const STAGE_COLORS: Record<string, string> = { '도입기': 'bg-blue-500', '성장기': 'bg-green-500', '성숙기': 'bg-amber-500', '쇠퇴기': 'bg-red-500' }
 
-export default function IlcAnalysis() {
+function IlcAnalysis() {
   const { state, updateFrameworkField } = useStrategy()
   const data = state?.frameworks.ilc?.data as IlcData | undefined
 
@@ -46,3 +47,5 @@ export default function IlcAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(IlcAnalysis)

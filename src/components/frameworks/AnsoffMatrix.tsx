@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import type { AnsoffData } from '../../types'
@@ -9,7 +10,7 @@ interface CellDef {
   pos: string
 }
 
-export default function AnsoffMatrix() {
+function AnsoffMatrix() {
   const { state, updateFrameworkField } = useStrategy()
   const data = state?.frameworks.ansoff?.data as AnsoffData | undefined
 
@@ -50,3 +51,5 @@ export default function AnsoffMatrix() {
     </FrameworkCard>
   )
 }
+
+export default memo(AnsoffMatrix)

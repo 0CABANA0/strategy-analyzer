@@ -14,3 +14,5 @@ export type { SectionDefinition } from './section'
 export type { AiCallParams, PromptResult, PromptContext, PromptTemplate, OpenRouterResponse, OpenRouterErrorBody } from './api'
 
 export type { FrameworkRecommendation, RecommendationResult } from './recommendation'
+
+export type { Profile, ActivityLog, AuthState } from './auth'

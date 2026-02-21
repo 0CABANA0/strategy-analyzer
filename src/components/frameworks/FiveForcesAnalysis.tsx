@@ -18,7 +18,7 @@ const FORCES: ForceDef[] = [
   { key: 'supplierPower', label: '공급자 교섭력', color: 'bg-green-500' },
 ]
 
-export default function FiveForcesAnalysis() {
+function FiveForcesAnalysis() {
   const { state, updateFrameworkField } = useStrategy()
   const data = state?.frameworks.fiveForces?.data as FiveForcesData | undefined
 
@@ -44,7 +44,9 @@ export default function FiveForcesAnalysis() {
                           level: n,
                         })
                       }
-                      className={`w-5 h-5 rounded text-[10px] font-medium transition-colors ${
+                      aria-pressed={n <= (force?.level || 0)}
+                      aria-label={`${label} 위협 수준 ${n}`}
+                      className={`w-5 h-5 rounded text-[10px] font-medium transition-colors focus:ring-2 focus:ring-primary-400 focus:ring-offset-1 ${
                         n <= (force?.level || 0)
                           ? `${color} text-white`
                           : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'
@@ -75,3 +77,5 @@ export default function FiveForcesAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default React.memo(FiveForcesAnalysis)

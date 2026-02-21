@@ -20,7 +20,7 @@ export default function WizardShell({ children }: WizardShellProps) {
     <div className="flex gap-6 max-w-screen-2xl mx-auto px-4 py-4">
       <Sidebar />
       <MobileSidebar isOpen={isOpen} onClose={close} />
-      <main className="flex-1 min-w-0">
+      <main id="main-content" className="flex-1 min-w-0">
         <StepIndicator />
         {section && (
           <div className="mb-6 animate-fade-in">

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { TextField, ListField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
@@ -10,7 +11,7 @@ interface MarketSizeDef {
   color: string
 }
 
-export default function MarketAnalysis() {
+function MarketAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.marketAnalysis?.data as MarketData | undefined
 
@@ -45,3 +46,5 @@ export default function MarketAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(MarketAnalysis)

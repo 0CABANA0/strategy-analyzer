@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  base: '/strategy-analyzer/',
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
@@ -21,6 +20,7 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-icons': ['lucide-react'],
           'vendor-export': ['html2pdf.js'],
+          'vendor-supabase': ['@supabase/supabase-js'],
         },
       },
     },

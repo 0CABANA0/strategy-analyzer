@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { ListField } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import type { ThreeCData } from '../../types'
 
-export default function ThreeCAnalysis() {
+function ThreeCAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.threeC?.data as ThreeCData | undefined
 
@@ -15,3 +16,5 @@ export default function ThreeCAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(ThreeCAnalysis)

@@ -3,15 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import { useDocumentList } from '../hooks/useLocalStorage'
 import { useStrategy } from '../hooks/useStrategyDocument'
 import { useToast } from '../hooks/useToast'
+import { supabase } from '../lib/supabase'
 import ConfirmModal from '../components/common/ConfirmModal'
-import { FileText, Trash2, Clock, ArrowRight, Search, ArrowUpDown, CheckSquare, Square } from 'lucide-react'
-import type { DocumentMeta } from '../types'
+import SearchSortBar from '../components/history/SearchSortBar'
+import DocumentList from '../components/history/DocumentList'
+import { Clock, Trash2, Loader2 } from 'lucide-react'
+import type { DocumentMeta, StrategyDocument } from '../types'
 
 type SortKey = 'date' | 'name'
 type SortDir = 'asc' | 'desc'
 
 export default function HistoryPage() {
-  const { docs, removeDocument, removeDocuments } = useDocumentList()
+  const { docs, isLoading: docsLoading, removeDocument, removeDocuments } = useDocumentList()
   const { loadDocument } = useStrategy()
   const navigate = useNavigate()
   const toast = useToast()
@@ -22,6 +25,7 @@ export default function HistoryPage() {
   const [sortKey, setSortKey] = useState<SortKey>('date')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null)
 
   const filteredDocs = useMemo(() => {
     let result = docs
@@ -42,16 +46,40 @@ export default function HistoryPage() {
     return result
   }, [docs, search, sortKey, sortDir])
 
-  const handleLoad = (doc: DocumentMeta) => {
+  const handleLoad = async (doc: DocumentMeta) => {
+    setLoadingDocId(doc.id)
     try {
+      const { data, error } = await supabase
+        .from('strategy_documents')
+        .select('*')
+        .eq('id', doc.id)
+        .single()
+      if (!error && data) {
+        const stratDoc: StrategyDocument = {
+          id: data.id,
+          businessItem: data.business_item,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+          currentStep: data.current_step,
+          frameworks: data.frameworks as StrategyDocument['frameworks'],
+          recommendation: data.recommendation as StrategyDocument['recommendation'],
+        }
+        loadDocument(stratDoc)
+        navigate('/analyzer')
+        return
+      }
       const stored = localStorage.getItem('strategy-analyzer:doc:' + doc.id)
       if (stored) {
         loadDocument(JSON.parse(stored))
         navigate('/analyzer')
+      } else {
+        toast.error('문서를 찾을 수 없습니다.')
       }
     } catch (e) {
       console.error('문서 불러오기 실패:', e)
       toast.error('문서를 불러오는데 실패했습니다.')
+    } finally {
+      setLoadingDocId(null)
     }
   }
 
@@ -110,10 +138,14 @@ export default function HistoryPage() {
     : `이름 ${sortDir === 'desc' ? '↓' : '↑'}`
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 animate-fade-in">
+    <main id="main-content" className="max-w-2xl mx-auto px-4 py-8 animate-fade-in">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">히스토리</h1>
 
-      {docs.length === 0 ? (
+      {docsLoading ? (
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+        </div>
+      ) : docs.length === 0 ? (
         <div className="text-center py-16 text-gray-400 dark:text-gray-500">
           <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>저장된 문서가 없습니다.</p>
@@ -126,27 +158,12 @@ export default function HistoryPage() {
         </div>
       ) : (
         <>
-          {/* 검색 + 정렬 + 벌크 */}
-          <div className="flex items-center gap-2 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="문서 검색..."
-                className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-              />
-            </div>
-            <button
-              onClick={toggleSort}
-              className="flex items-center gap-1 px-3 py-2 text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors shrink-0"
-              title="정렬"
-            >
-              <ArrowUpDown className="w-3.5 h-3.5" />
-              {sortLabel}
-            </button>
-          </div>
+          <SearchSortBar
+            search={search}
+            onSearchChange={setSearch}
+            sortLabel={sortLabel}
+            onToggleSort={toggleSort}
+          />
 
           {/* 벌크 선택 바 */}
           {selected.size > 0 && (
@@ -172,53 +189,18 @@ export default function HistoryPage() {
               검색 결과가 없습니다.
             </div>
           ) : (
-            <div className="space-y-2">
-              {filteredDocs.map((doc: DocumentMeta) => (
-                <button
-                  key={doc.id}
-                  onClick={() => handleLoad(doc)}
-                  className="w-full text-left bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-sm transition-all group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <button
-                        onClick={(e) => handleToggleSelect(e, doc.id)}
-                        className="shrink-0 text-gray-300 dark:text-gray-600 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-                      >
-                        {selected.has(doc.id) ? (
-                          <CheckSquare className="w-5 h-5 text-primary-500" />
-                        ) : (
-                          <Square className="w-5 h-5" />
-                        )}
-                      </button>
-                      <FileText className="w-5 h-5 text-gray-400 dark:text-gray-500 shrink-0" />
-                      <div className="min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {doc.businessItem}
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                          {new Date(doc.updatedAt).toLocaleString('ko-KR')}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={(e) => handleDeleteClick(e, doc.id)}
-                        className="p-1.5 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <ArrowRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors" />
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <DocumentList
+              docs={filteredDocs}
+              selected={selected}
+              loadingDocId={loadingDocId}
+              onLoad={handleLoad}
+              onToggleSelect={handleToggleSelect}
+              onDeleteClick={handleDeleteClick}
+            />
           )}
         </>
       )}
 
-      {/* 단일 삭제 모달 */}
       <ConfirmModal
         isOpen={deleteTarget !== null}
         title="문서 삭제"
@@ -229,7 +211,6 @@ export default function HistoryPage() {
         onCancel={() => setDeleteTarget(null)}
       />
 
-      {/* 벌크 삭제 모달 */}
       <ConfirmModal
         isOpen={bulkDeleteMode}
         title="문서 일괄 삭제"
@@ -239,6 +220,6 @@ export default function HistoryPage() {
         onConfirm={handleConfirmBulkDelete}
         onCancel={() => setBulkDeleteMode(false)}
       />
-    </div>
+    </main>
   )
 }

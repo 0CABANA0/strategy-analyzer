@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import FrameworkCard from './FrameworkCard'
 import { TextField, DataTable } from './FieldRenderer'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import type { VrioData } from '../../types'
 
-export default function VrioAnalysis() {
+function VrioAnalysis() {
   const { state } = useStrategy()
   const data = state?.frameworks.vrio?.data as VrioData | undefined
 
@@ -18,3 +19,5 @@ export default function VrioAnalysis() {
     </FrameworkCard>
   )
 }
+
+export default memo(VrioAnalysis)
