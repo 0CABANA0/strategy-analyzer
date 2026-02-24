@@ -1,111 +1,121 @@
-# Strategy Analyzer (전략분석기)
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## 사용자 선호사항
+- 설명 및 응답은 **한글**로 작성할 것
 
 ## 프로젝트 개요
-사업 아이템을 입력하면 16개 전략 프레임워크 기반 전략 PRD를 AI로 자동 생성하는 웹 앱.
-효성인력개발원 전략수립 교육 자료 기반.
 
-## 기술 스택
-- **프론트엔드**: React 19 + Vite 7 + Tailwind CSS 4 + **TypeScript (strict)**
-- **AI API**: OpenRouter (하나의 키로 Claude, GPT, Gemini, DeepSeek 등 사용)
-- **저장**: LocalStorage
-- **내보내기**: Obsidian 마크다운 + PDF (html2pdf.js)
-- **테스트**: Vitest + React Testing Library + jest-dom
-- **에러 처리**: 커스텀 에러 클래스 계층 + 지수 백오프 재시도
+사업 아이템을 입력하면 20개 전략 프레임워크 기반 전략 PRD를 AI가 자동 생성하는 웹 앱.
+효성인력개발원 전략수립 교육 자료 기반. 5단계 위저드 → 미리보기 → HTML/Markdown 내보내기.
 
 ## 명령어
 
 ```bash
-npm run dev        # 개발 서버 (localhost:5173)
-npm run build      # tsc --noEmit + Vite 프로덕션 빌드
-npm run preview    # 빌드 결과 미리보기
-npm run test       # Vitest watch 모드
-npm run test:run   # Vitest 일회 실행
-npm run typecheck  # TypeScript 타입 체크
-npm run lint       # ESLint
+npm run dev          # Vite 개발 서버 (localhost:5173)
+npm run build        # tsc --noEmit + Vite 프로덕션 빌드
+npm run typecheck    # TypeScript strict 타입 검증만
+npm run test         # Vitest watch 모드
+npm run test:run     # Vitest 일회 실행 (CI)
+npm run lint         # ESLint
+npx vercel --prod    # Vercel 프로덕션 배포
 ```
 
-## API 키 설정
+단일 테스트 파일: `npx vitest run src/utils/__tests__/retry.test.ts`
 
-`.env` 파일에 OpenRouter API 키를 설정하세요 (`.env.example` 참고):
+## 기술 스택
 
-```env
-VITE_OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx
-```
+- React 19 + Vite 7 + Tailwind CSS 4 + **TypeScript strict**
+- AI: OpenRouter (Claude, GPT, Gemini, DeepSeek 등 멀티모델)
+- 저장: LocalStorage (즉시) + Supabase (디바운스 2초 동기화)
+- 인증: Supabase Auth (이메일/비밀번호)
+- 내보내기: HTML (미리보기 그대로) + Obsidian 호환 Markdown
+- 테스트: Vitest + React Testing Library + jest-dom
 
-또는 설정 페이지에서 브라우저에 직접 입력 가능 (LocalStorage 저장).
-우선순위: `.env` > 브라우저 입력
-
-## 지원 모델
-
-| 카테고리 | 모델 | ID | 입력/출력 ($/M) |
-|---------|------|-----|----------------|
-| **가성비 추천** | Gemini 2.5 Flash | `google/gemini-2.5-flash` | $0.30 / $2.50 |
-| 가성비 | GPT-4.1 Mini | `openai/gpt-4.1-mini` | $0.40 / $1.60 |
-| 가성비 | DeepSeek V3 | `deepseek/deepseek-chat` | $0.30 / $1.20 |
-| 프리미엄 | Gemini 2.5 Pro | `google/gemini-2.5-pro` | $1.25 / $10.00 |
-| 프리미엄 | Claude Sonnet 4 | `anthropic/claude-sonnet-4` | $3.00 / $15.00 |
-| 프리미엄 | GPT-4o | `openai/gpt-4o` | $2.50 / $10.00 |
-| **최저가** | DeepSeek V3.2 | `deepseek/deepseek-v3.2` | $0.25 / $0.38 |
-| 저비용 | DeepSeek R1 | `deepseek/deepseek-r1` | $0.70 / $2.50 |
-
-## 디렉토리 구조
+## 환경변수 (.env)
 
 ```
-src/
-├── types/                         # TypeScript 타입 정의
-│   ├── framework.ts               #   FrameworkId, FieldDef, 20개 데이터 인터페이스
-│   ├── document.ts                #   StrategyDocument, FrameworkState
-│   ├── settings.ts                #   ModelDefinition, Settings
-│   ├── section.ts                 #   SectionDefinition
-│   ├── api.ts                     #   AiCallParams, OpenRouterResponse
-│   ├── recommendation.ts          #   RecommendationResult
-│   └── index.ts                   #   배럴 re-export
-├── data/
-│   ├── frameworkDefinitions.ts    # 16개 프레임워크 메타데이터
-│   ├── sectionDefinitions.ts      # 5개 섹션
-│   ├── modelDefinitions.ts        # OpenRouter 모델 정의
-│   └── sampleData.ts              # 샘플 데이터 (API 키 없이 테스트용)
-├── hooks/
-│   ├── useStrategyDocument.tsx    # Context + useReducer 상태관리 (핵심)
-│   ├── useSettings.tsx            # 모델 선택 + API 키 (.env / 브라우저)
-│   ├── useWizard.ts               # 위저드 스텝 관리
-│   ├── useAiGeneration.ts         # AI 생성 로직 (withRetry 통합)
-│   ├── useRecommendation.ts       # AI 분석전략 추천 로직
-│   └── useLocalStorage.ts         # 자동 저장/복원 (제네릭)
-├── services/
-│   ├── aiService.ts               # API 추상화 + JSON 파싱 복구
-│   ├── openrouterProvider.ts      # OpenRouter API 호출 (에러 분류)
-│   └── promptTemplates.ts         # 프레임워크별 프롬프트 + 추천 프롬프트
-├── utils/
-│   ├── errors.ts                  # 에러 클래스 계층 (ApiError, RateLimitError 등)
-│   ├── retry.ts                   # 지수 백오프 재시도 (withRetry)
-│   ├── exportMarkdown.ts          # Obsidian 호환 마크다운
-│   └── exportPdf.ts               # PDF 내보내기
-├── components/
-│   ├── layout/                    # Header, Sidebar (추천 뱃지 표시)
-│   ├── wizard/                    # StepIndicator, StepNavigation, WizardShell
-│   ├── frameworks/                # 16개 프레임워크 카드 + FrameworkCard 래퍼
-│   ├── recommendation/            # RecommendationPanel (추천 결과 UI)
-│   └── preview/                   # DocumentPreview
-├── pages/
-│   ├── HomePage.tsx               # 사업 아이템 입력 + 분석전략 추천
-│   ├── AnalyzerPage.tsx           # 위저드 (5단계)
-│   ├── PreviewPage.tsx            # 문서 미리보기 + 내보내기
-│   ├── HistoryPage.tsx            # 저장된 문서 목록
-│   └── SettingsPage.tsx           # OpenRouter API 키 + 모델 선택
-└── test/
-    ├── setup.ts                   # jest-dom 매처 설정
-    └── helpers.tsx                # renderWithProviders 테스트 헬퍼
+VITE_OPENROUTER_API_KEY=sk-or-v1-xxx    # .env > 브라우저 입력 (우선순위)
+VITE_SUPABASE_URL=https://xxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJxxx
+VITE_SITE_URL=https://strategy-analyzer-one.vercel.app
 ```
 
-## 핵심 설계
+API 키 없으면 자동으로 샘플 데이터 사용 (sampleData.ts).
 
-- **TypeScript strict**: 모든 파일이 .ts/.tsx, noEmit 모드로 타입 검증
-- **OpenRouter 통합**: 하나의 API 키로 8개+ 모델 교체 사용. Vite 프록시(`/api/openrouter`) 경유
-- **API 키 우선순위**: `.env` 파일 > 브라우저 LocalStorage 입력
-- **상태관리**: `useStrategyDocument` — Context + useReducer, 자동 LocalStorage 저장
-- **AI 컨텍스트 체인**: 이전 프레임워크 결과가 다음 프레임워크 프롬프트에 자동 주입됨
-- **JSON 모드**: OpenRouter `response_format: { type: "json_object" }` 사용
-- **샘플 데이터**: API 키 없으면 자동으로 샘플 데이터 사용 (식단관리 앱 예시)
-- **에러 처리**: ApiError/NetworkError/RateLimitError/AuthError 분류, 지수 백오프 재시도, 한글 사용자 메시지
-- **AI 분석전략 추천**: 사업 아이템 입력 시 AI가 16개 프레임워크를 필수/권장/선택으로 분류하고 사유를 제시
+## 아키텍처
+
+### 데이터 흐름
+
+```
+사용자 입력(businessItem)
+  → useStrategy Context (useReducer)
+  → useAiGeneration (callAI + withRetry)
+  → OpenRouter API (JSON 모드)
+  → parseJsonResponse (3단계 JSON 복구: think태그 → 코드블록 → 중괄호 추출)
+  → setFrameworkData → LocalStorage 즉시 + Supabase 디바운스 저장
+  → DocumentPreview (텍스트 내 마크다운 테이블 자동 파싱 → HTML 테이블)
+```
+
+### 상태관리
+
+`useStrategyDocument.tsx` — Context + useReducer, discriminated union 액션.
+자동 저장: LocalStorage 즉시 + Supabase upsert (2초 디바운스). 저장 실패 시 콘솔 경고만.
+초기 로드: localStorage `strategy-analyzer:lastDocId` → `strategy-analyzer:doc:{id}` 복원.
+
+### AI 서비스 계층
+
+- `openrouterProvider.ts`: fetch → 에러 분류 (401→AuthError, 429→RateLimitError, 5xx→재시도)
+- `aiService.ts`: `parseJsonResponse()` — DeepSeek `<think>` 태그 제거, 코드블록 제거, 중괄호 추출+복구
+- `services/prompts/`: 20개 프레임워크별 프롬프트 템플릿 + 추천 프롬프트
+- **컨텍스트 체인**: 이전 프레임워크 결과가 다음 프롬프트에 자동 주입됨
+
+### 에러 처리
+
+`ApiError` → `NetworkError`(재시도O) / `RateLimitError`(retryAfterMs) / `AuthError`(재시도X).
+`withRetry()`: 지수 백오프 (2^attempt × baseDelay), RateLimitError는 retryAfterMs 대기.
+`getUserFriendlyMessage()`: 에러 → 한글 메시지 변환.
+
+### 프레임워크 시스템
+
+`data/frameworkDefinitions.ts`: 20개 프레임워크 메타데이터 (id, name, fields, section).
+`data/sectionDefinitions.ts`: 5개 섹션 (기획배경→환경분석→시사점→추진전략→기대효과).
+필드 타입: `text | list | select | object | table` — FieldRenderer가 타입별 자동 렌더링.
+프레임워크 상태: `empty | generating | completed | error`.
+
+### 내보내기
+
+- **HTML** (`exportHtml.ts`): 페이지 CSS 전체 인라인 + `#document-preview` outerHTML 저장. Ctrl+P로 벡터 PDF 변환 가능.
+- **Markdown** (`exportMarkdown.ts`): Obsidian 호환. 셀 `|` 이스케이프, 줄바꿈→공백, 빈 셀→`-`. 멀티라인 텍스트(임베디드 테이블)는 블록 형태로 출력.
+- **DocumentPreview**: `RichText` 컴포넌트가 텍스트 필드 내 마크다운 테이블 패턴을 자동 감지하여 HTML `<table>`로 렌더링.
+
+### 인증 & 관리자
+
+`useAuth.tsx`: Supabase Auth 래퍼. Profile 자동 동기화, suspended 사용자 자동 로그아웃.
+관리자: `AdminPage` — 전역 모델 설정 (app_settings 테이블), 사용자 관리, 활동 로그.
+인증 가드: `AuthGuard`, `AdminGuard` 컴포넌트.
+
+### Vite 프록시
+
+개발 환경에서 `/api/openrouter/*` → `https://openrouter.ai/*` 프록시 (CORS 우회).
+프로덕션에서는 OpenRouter 직접 호출.
+
+## 테스트
+
+`src/test/helpers.tsx`: `renderWithProviders()` — 모든 Provider(Auth, Settings, Strategy, Toast 등) 래핑.
+테스트 파일: `__tests__/` 디렉토리 (hooks, pages, components, services, utils 각각).
+133개 테스트, 18개 파일.
+
+## 주요 타입
+
+- `FrameworkId`: 20개 프레임워크 리터럴 유니온
+- `StrategyDocument`: 전체 문서 상태 (id, businessItem, frameworks, recommendation)
+- `FrameworkData`: 20개 프레임워크 데이터 유니온
+- `FrameworkState`: { status, data, updatedAt, error }
+- `RecommendationResult`: { essential, recommended, optional } 분류
+
+## 배포
+
+Vercel (strategy-analyzer-one.vercel.app). `npx vercel --prod`로 배포.
+SEO: index.html에 OG태그, JSON-LD, robots.txt, sitemap.xml 포함.
