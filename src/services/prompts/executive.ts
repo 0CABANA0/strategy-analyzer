@@ -17,7 +17,7 @@ export function executiveSummaryPrompt(state: StrategyDocument): PromptResult {
   return {
     system: `당신은 글로벌 전략 컨설팅 펌의 시니어 파트너입니다. C-레벨 경영진을 위한 전략 요약 보고서를 작성합니다.
 한국어로 답변하세요. 반드시 지정된 JSON 형식만 출력하세요. 설명이나 마크다운 코드블록 없이 순수 JSON만 반환하세요.`,
-    user: `사업 아이템: "${state.businessItem}"
+    user: `전략분석 아이템: "${state.businessItem}"
 
 아래는 이 사업에 대한 전략 분석 결과입니다.
 C-레벨 의사결정자가 1페이지로 사업 전체를 파악할 수 있는 경영진 요약을 작성해 주세요.

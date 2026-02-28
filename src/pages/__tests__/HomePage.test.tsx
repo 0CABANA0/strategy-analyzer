@@ -11,7 +11,7 @@ describe('HomePage', () => {
   it('입력 폼과 "전체 분석 시작" 버튼이 렌더링된다', () => {
     renderWithProviders(<HomePage />)
 
-    expect(screen.getByPlaceholderText('예: AI 기반 식단관리 앱')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('예: AI 기반 예지보전 플랫폼')).toBeInTheDocument()
     expect(screen.getByText('전체 분석 시작')).toBeInTheDocument()
     expect(screen.getByText('전략분석기')).toBeInTheDocument()
   })
@@ -20,13 +20,13 @@ describe('HomePage', () => {
     const user = userEvent.setup()
     renderWithProviders(<HomePage />)
 
-    const exampleButton = screen.getByText('AI 기반 식단관리 앱')
+    const exampleButton = screen.getByText('AI 기반 예지보전 플랫폼')
     expect(exampleButton).toBeInTheDocument()
 
     await user.click(exampleButton)
 
-    const input = screen.getByPlaceholderText('예: AI 기반 식단관리 앱') as HTMLInputElement
-    expect(input.value).toBe('AI 기반 식단관리 앱')
+    const input = screen.getByPlaceholderText('예: AI 기반 예지보전 플랫폼') as HTMLInputElement
+    expect(input.value).toBe('AI 기반 예지보전 플랫폼')
   })
 
   it('입력이 비어있으면 "전체 분석 시작" 버튼이 비활성화된다', () => {
@@ -40,8 +40,8 @@ describe('HomePage', () => {
     const user = userEvent.setup()
     renderWithProviders(<HomePage />)
 
-    const input = screen.getByPlaceholderText('예: AI 기반 식단관리 앱')
-    await user.type(input, '테스트 사업')
+    const input = screen.getByPlaceholderText('예: AI 기반 예지보전 플랫폼')
+    await user.type(input, '테스트 전략')
 
     const startButton = screen.getByText('전체 분석 시작').closest('button')
     expect(startButton).not.toBeDisabled()
@@ -51,11 +51,12 @@ describe('HomePage', () => {
     renderWithProviders(<HomePage />)
 
     const examples = [
-      'AI 기반 식단관리 앱',
-      '중소기업 ERP SaaS 플랫폼',
-      '전기차 충전 인프라 사업',
-      'K-뷰티 해외 D2C 플랫폼',
-      '노인돌봄 로봇 서비스',
+      'AI 기반 예지보전 플랫폼',
+      '사내 DX 전환 전략',
+      '동남아 시장 진출 전략',
+      '신재생에너지 사업 다각화',
+      '스마트팩토리 구축 로드맵',
+      'B2B SaaS 수익모델 전환',
     ]
 
     for (const example of examples) {
@@ -67,7 +68,7 @@ describe('HomePage', () => {
     renderWithProviders(<HomePage />)
 
     expect(
-      screen.getByText(/사업 아이템을 입력하면 16개 프레임워크 기반/)
+      screen.getByText(/전략분석 아이템을 입력하면 20개 프레임워크 기반/)
     ).toBeInTheDocument()
   })
 

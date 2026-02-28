@@ -3,7 +3,7 @@ import { COMMON_SYSTEM, buildContext } from './common'
 
 export const faw: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 FAW(Fact-Assumption-What if) 분석을 수행하세요.
@@ -18,7 +18,7 @@ JSON 형식:
 
 export const threeC: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 3C 분석 (Company, Customer, Competitor)을 수행하세요.
@@ -33,7 +33,7 @@ JSON 형식:
 
 export const ansoff: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 Ansoff 성장 매트릭스 분석을 수행하세요.

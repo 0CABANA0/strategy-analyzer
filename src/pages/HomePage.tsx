@@ -8,17 +8,18 @@ import { ArrowRight, AlertCircle, Sparkles, Wand2 } from 'lucide-react'
 import AppIcon from '../components/common/AppIcon'
 
 const EXAMPLES: string[] = [
-  'AI 기반 식단관리 앱',
-  '중소기업 ERP SaaS 플랫폼',
-  '전기차 충전 인프라 사업',
-  'K-뷰티 해외 D2C 플랫폼',
-  '노인돌봄 로봇 서비스',
+  'AI 기반 예지보전 플랫폼',
+  '사내 DX 전환 전략',
+  '동남아 시장 진출 전략',
+  '신재생에너지 사업 다각화',
+  '스마트팩토리 구축 로드맵',
+  'B2B SaaS 수익모델 전환',
 ]
 
 export default function HomePage() {
-  const [input, setInput] = useState('')
   const navigate = useNavigate()
-  const { initDocument } = useStrategy()
+  const { state, initDocument } = useStrategy()
+  const [input, setInput] = useState(state?.businessItem ?? '')
   const { hasApiKey } = useSettings()
   const { recommendation, isLoading, error, generateRecommendation } = useRecommendation()
 
@@ -61,7 +62,7 @@ export default function HomePage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">전략분석기</h1>
           <p className="text-gray-500 dark:text-gray-400">
-            사업 아이템을 입력하면 16개 프레임워크 기반
+            전략분석 아이템을 입력하면 20개 프레임워크 기반
             <br />
             전략 PRD를 AI가 자동 생성합니다.
           </p>
@@ -69,7 +70,7 @@ export default function HomePage() {
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            사업 아이템
+            전략분석 아이템
           </label>
           <div className="relative">
             <input
@@ -80,7 +81,7 @@ export default function HomePage() {
                 setShowRecommendation(false)
               }}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleStart()}
-              placeholder="예: AI 기반 식단관리 앱"
+              placeholder="예: AI 기반 예지보전 플랫폼"
               className="w-full px-4 py-3 text-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
               autoFocus
             />

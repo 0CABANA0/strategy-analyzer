@@ -3,7 +3,7 @@ import { COMMON_SYSTEM, buildContext } from './common'
 
 export const swot: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 SWOT 크로스분석을 수행하세요. 이전 분석(PEST, 3C, 5Forces 등) 결과를 반영하세요.

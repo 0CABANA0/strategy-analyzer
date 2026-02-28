@@ -23,7 +23,7 @@ export function financialPrompt(state: StrategyDocument): PromptResult {
     system: `당신은 사업 타당성 분석 전문가이자 재무 모델링 전문가입니다. 전략 분석 결과를 기반으로 재무 시뮬레이션을 수행합니다.
 한국어로 답변하세요. 반드시 지정된 JSON 형식만 출력하세요. 설명이나 마크다운 코드블록 없이 순수 JSON만 반환하세요.
 모든 금액 단위는 만원입니다. 수치는 반드시 숫자(number)로 반환하세요.`,
-    user: `사업 아이템: "${state.businessItem}"
+    user: `전략분석 아이템: "${state.businessItem}"
 
 아래는 이 사업의 전략 분석 결과입니다. 이를 기반으로 재무 시뮬레이션을 수행해 주세요.
 

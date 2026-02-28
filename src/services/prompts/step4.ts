@@ -3,7 +3,7 @@ import { COMMON_SYSTEM, buildContext } from './common'
 
 export const genericStrategy: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 Porter의 본원적 전략을 선택하고 실행 방안을 제시하세요.
@@ -18,7 +18,7 @@ JSON 형식:
 
 export const stp: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 STP (Segmentation, Targeting, Positioning) 분석을 수행하세요.
@@ -33,7 +33,7 @@ JSON 형식:
 
 export const errc: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 ERRC (Eliminate-Reduce-Raise-Create) 그리드 분석을 수행하세요.
@@ -49,7 +49,7 @@ JSON 형식:
 
 export const fourP: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 마케팅 믹스 4P 전략을 수립하세요.
@@ -65,7 +65,7 @@ JSON 형식:
 
 export const wbs: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 WBS (Work Breakdown Structure) 추진 일정을 수립하세요.

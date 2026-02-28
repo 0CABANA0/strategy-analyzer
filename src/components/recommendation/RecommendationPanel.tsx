@@ -17,7 +17,7 @@ const LEVEL_CONFIG = {
     badge: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
     barColor: 'bg-red-500',
     icon: Star,
-    description: '이 사업 아이템 분석에 반드시 필요한 핵심 프레임워크',
+    description: '이 전략분석 아이템에 반드시 필요한 핵심 프레임워크',
   },
   recommended: {
     label: '권장',
@@ -152,7 +152,7 @@ export default function RecommendationPanel({
           onClick={onStartAll}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300"
         >
-          전체 분석 시작 (16개)
+          전체 분석 시작 (20개)
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

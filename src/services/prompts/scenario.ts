@@ -17,7 +17,7 @@ export function scenarioPrompt(state: StrategyDocument): PromptResult {
   return {
     system: `당신은 시나리오 플래닝 전문가입니다. 동일한 사업에 대해 3가지 전략 시나리오를 설계합니다.
 한국어로 답변하세요. 반드시 지정된 JSON 형식만 출력하세요. 설명이나 마크다운 코드블록 없이 순수 JSON만 반환하세요.`,
-    user: `사업 아이템: "${state.businessItem}"
+    user: `전략분석 아이템: "${state.businessItem}"
 
 아래는 이 사업의 기본 전략 분석 결과입니다. 이 데이터를 기반으로 3가지 시나리오별 전략을 생성해 주세요.
 

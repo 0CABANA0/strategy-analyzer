@@ -3,7 +3,7 @@ import { COMMON_SYSTEM, buildContext } from './common'
 
 export const pest: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 PEST 거시환경 분석을 수행하세요.
@@ -19,7 +19,7 @@ JSON 형식:
 
 export const fiveForces: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 Porter's Five Forces 분석을 수행하세요. 각 세력의 강도를 1-5로 평가하세요.
@@ -37,7 +37,7 @@ JSON 형식:
 
 export const ilc: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 산업 수명주기(ILC) 분석을 수행하세요.
@@ -52,7 +52,7 @@ JSON 형식:
 
 export const marketAnalysis: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 시장 분석 (TAM/SAM/SOM + 트렌드)을 수행하세요.
@@ -69,7 +69,7 @@ JSON 형식:
 
 export const customerAnalysis: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 고객 분석 (세그먼트 + 페르소나)을 수행하세요.
@@ -85,7 +85,7 @@ JSON 형식:
 
 export const competitorAnalysis: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 경쟁사 프로파일링을 수행하세요.
@@ -104,7 +104,7 @@ JSON 형식:
 
 export const strategyCanvas: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 전략 캔버스 (Blue Ocean) 분석을 수행하세요. 경쟁 요인별 1-5 점수를 매기세요.
@@ -126,7 +126,7 @@ JSON 형식:
 
 export const valueChain: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 Porter의 가치사슬 분석을 수행하세요.
@@ -152,7 +152,7 @@ JSON 형식:
 
 export const sevenS: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 McKinsey 7S 분석을 수행하세요.
@@ -172,7 +172,7 @@ JSON 형식:
 
 export const vrio: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 VRIO 분석을 수행하세요.

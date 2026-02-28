@@ -3,7 +3,7 @@ import { COMMON_SYSTEM, buildContext } from './common'
 
 export const kpi: PromptTemplate = ({ businessItem, context }: PromptContext): PromptResult => ({
   system: COMMON_SYSTEM,
-  user: `사업 아이템: "${businessItem}"
+  user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
 기대효과와 KPI 체계(Input→Throughput→Output→Outcome)를 설계하세요.

@@ -18,9 +18,9 @@ export function consistencyCheckPrompt(state: StrategyDocument): PromptResult {
   return {
     system: `당신은 전략 문서 검증 전문가입니다. 전략 컨설팅 20년 경력의 시니어 파트너로서, 전략 문서의 일관성과 논리적 완결성을 검증합니다.
 한국어로 답변하세요. 반드시 지정된 JSON 형식만 출력하세요. 설명이나 마크다운 코드블록 없이 순수 JSON만 반환하세요.`,
-    user: `사업 아이템: "${state.businessItem}"
+    user: `전략분석 아이템: "${state.businessItem}"
 
-아래는 이 사업 아이템에 대해 20개 전략 프레임워크로 분석한 결과입니다.
+아래는 이 전략분석 아이템에 대해 20개 전략 프레임워크로 분석한 결과입니다.
 전체 프레임워크 간 일관성, 논리 흐름, 완성도를 검증해 주세요.
 
 [분석 데이터]

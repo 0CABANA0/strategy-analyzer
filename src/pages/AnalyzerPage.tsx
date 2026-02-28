@@ -10,7 +10,7 @@ export default function AnalyzerPage() {
   const { currentStep } = useWizard()
   const navigate = useNavigate()
 
-  // 사업 아이템이 없으면 홈으로
+  // 전략분석 아이템이 없으면 홈으로
   useEffect(() => {
     if (!state?.businessItem) {
       navigate('/', { replace: true })

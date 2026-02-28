@@ -22,7 +22,8 @@ import WbsSchedule from './WbsSchedule'
 import KpiDashboard from './KpiDashboard'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { SECTIONS } from '../../data/sectionDefinitions'
-import { Sparkles, Loader2 } from 'lucide-react'
+import { FRAMEWORKS } from '../../data/frameworkDefinitions'
+import { Sparkles, Loader2, Lightbulb } from 'lucide-react'
 import { useAiGeneration } from '../../hooks/useAiGeneration'
 import GenerationProgress from '../common/GenerationProgress'
 
@@ -69,8 +70,26 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
   ).length
   const isSectionGenerating = sectionGeneratingIds.length > 0
 
+  // 기획배경(Step 1)에서 추천 결과 없으면 FAW 기본 추천 배너
+  const showDefaultGuide = stepNumber === 1 && !state?.recommendation
+  const defaultFramework = showDefaultGuide ? FRAMEWORKS['faw'] : null
+
   return (
     <div>
+      {/* 기획배경 기본 추천 가이드 */}
+      {showDefaultGuide && defaultFramework && (
+        <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-start gap-2">
+          <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <span className="font-medium text-amber-800 dark:text-amber-300">추천: </span>
+            <span className="text-amber-700 dark:text-amber-400">
+              <strong>{defaultFramework.name}</strong>({defaultFramework.fullName})부터 시작하세요.
+              시장 팩트에서 가정을 도출하고, What-if 시나리오로 기회를 발견하는 기획의 출발점입니다.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* 전체 생성 버튼 + 진행 상황 */}
       <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
         <button

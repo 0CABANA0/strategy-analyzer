@@ -1,6 +1,6 @@
 /**
  * 샘플 데이터 — API 키 없이 데모/테스트용
- * 사업 아이템: "AI 기반 식단관리 앱"
+ * 전략분석 아이템: "AI 기반 식단관리 앱"
  */
 export const sampleData: Record<string, unknown> = {
   faw: {
