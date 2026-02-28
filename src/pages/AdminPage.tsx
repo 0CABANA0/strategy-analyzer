@@ -6,7 +6,7 @@ import UserTable from '../components/admin/UserTable'
 import ActivityLog from '../components/admin/ActivityLog'
 
 export default function AdminPage() {
-  const { stats, profiles, activities, isLoading, updateProfileRole, suspendUser } = useAdminData()
+  const { stats, profiles, activities, isLoading, updateProfileRole, suspendUser, togglePremium } = useAdminData()
 
   if (isLoading) {
     return (
@@ -21,7 +21,7 @@ export default function AdminPage() {
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">관리자 대시보드</h1>
       <StatsCards stats={stats} />
       <ModelSelector />
-      <UserTable profiles={profiles} onUpdate={updateProfileRole} onSuspend={suspendUser} />
+      <UserTable profiles={profiles} onUpdate={updateProfileRole} onSuspend={suspendUser} onTogglePremium={togglePremium} />
       <ActivityLog activities={activities} />
     </main>
   )

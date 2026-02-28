@@ -75,5 +75,16 @@ export function useAdminData() {
     return { error: error?.message ?? null }
   }, [])
 
-  return { stats, profiles, activities, isLoading, updateProfileRole, suspendUser }
+  const togglePremium = useCallback(async (id: string, isPremium: boolean) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_premium: isPremium })
+      .eq('id', id)
+    if (!error) {
+      setProfiles((prev) => prev.map((p) => p.id === id ? { ...p, is_premium: isPremium } : p))
+    }
+    return { error: error?.message ?? null }
+  }, [])
+
+  return { stats, profiles, activities, isLoading, updateProfileRole, suspendUser, togglePremium }
 }

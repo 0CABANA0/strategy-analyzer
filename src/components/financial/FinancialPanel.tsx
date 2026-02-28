@@ -1,6 +1,6 @@
 /** 재무 시뮬레이션 패널 */
 import { useFinancialSimulation } from '../../hooks/useFinancialSimulation'
-import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Loader2, Lock } from 'lucide-react'
 import { useState } from 'react'
 import type { RevenueProjection } from '../../types'
 
@@ -92,8 +92,27 @@ function MarketSizingChart({ tam, sam, som }: {
 }
 
 export default function FinancialPanel() {
-  const { result, isLoading, error, generate } = useFinancialSimulation()
+  const { result, isLoading, error, isPremiumRequired, generate } = useFinancialSimulation()
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  // 프리미엄 아닌 사용자에게는 잠금 UI 표시
+  if (isPremiumRequired) {
+    return (
+      <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+            <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">재무 시뮬레이션</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              프리미엄 사용자 전용 기능입니다. 관리자에게 이용 권한을 요청해 주세요.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!result && !isLoading && !error) {
     return (

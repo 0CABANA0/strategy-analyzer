@@ -4,6 +4,7 @@ export interface Profile {
   display_name: string | null
   role: 'user' | 'admin'
   status: 'active' | 'suspended'
+  is_premium: boolean
   created_at: string
   last_sign_in_at: string | null
 }
@@ -20,4 +21,5 @@ export interface AuthState {
   user: Profile | null
   isLoading: boolean
   isAdmin: boolean
+  isPremium: boolean
 }

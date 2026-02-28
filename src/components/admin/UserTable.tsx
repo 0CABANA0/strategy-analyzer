@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 import { supabase } from '../../lib/supabase'
-import { Search, Loader2, ShieldCheck, ShieldOff, UserX, UserCheck } from 'lucide-react'
+import { Search, Loader2, ShieldCheck, ShieldOff, UserX, UserCheck, Crown } from 'lucide-react'
 import ConfirmModal from '../common/ConfirmModal'
 import type { Profile } from '../../types'
 
@@ -10,6 +10,7 @@ interface UserTableProps {
   profiles: Profile[]
   onUpdate: (id: string, role: Profile['role']) => void
   onSuspend: (id: string, status: Profile['status']) => Promise<{ error: string | null }>
+  onTogglePremium: (id: string, isPremium: boolean) => Promise<{ error: string | null }>
 }
 
 function formatDate(d: string | null) {
@@ -17,13 +18,14 @@ function formatDate(d: string | null) {
   return new Date(d).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })
 }
 
-export default function UserTable({ profiles, onUpdate, onSuspend }: UserTableProps) {
+export default function UserTable({ profiles, onUpdate, onSuspend, onTogglePremium }: UserTableProps) {
   const { user: currentUser } = useAuth()
   const toast = useToast()
   const [search, setSearch] = useState('')
   const [sortField, setSortField] = useState<'created_at' | 'last_sign_in_at' | 'email'>('created_at')
   const [sortAsc, setSortAsc] = useState(false)
   const [togglingRole, setTogglingRole] = useState<string | null>(null)
+  const [togglingPremium, setTogglingPremium] = useState<string | null>(null)
   const [suspendingId, setSuspendingId] = useState<string | null>(null)
   const [confirmTarget, setConfirmTarget] = useState<Profile | null>(null)
 
@@ -44,6 +46,18 @@ export default function UserTable({ profiles, onUpdate, onSuspend }: UserTablePr
     } else {
       toast.success(`${profile.email}의 역할이 ${newRole === 'admin' ? '관리자' : '사용자'}로 변경되었습니다.`)
       onUpdate(profile.id, newRole)
+    }
+  }
+
+  const handleTogglePremium = async (profile: Profile) => {
+    const newPremium = !profile.is_premium
+    setTogglingPremium(profile.id)
+    const { error } = await onTogglePremium(profile.id, newPremium)
+    setTogglingPremium(null)
+    if (error) {
+      toast.error(`프리미엄 변경 실패: ${error}`)
+    } else {
+      toast.success(`${profile.email}의 프리미엄이 ${newPremium ? '활성화' : '해제'}되었습니다.`)
     }
   }
 
@@ -115,6 +129,7 @@ export default function UserTable({ profiles, onUpdate, onSuspend }: UserTablePr
                 </th>
                 <th className="px-4 py-2 font-medium text-gray-600 dark:text-gray-300">표시명</th>
                 <th className="px-4 py-2 font-medium text-gray-600 dark:text-gray-300">역할</th>
+                <th className="px-4 py-2 font-medium text-gray-600 dark:text-gray-300">프리미엄</th>
                 <th className="px-4 py-2 font-medium text-gray-600 dark:text-gray-300">상태</th>
                 <th className="px-4 py-2 font-medium text-gray-600 dark:text-gray-300 cursor-pointer select-none" onClick={() => handleSort('created_at')}>
                   가입일{sortIndicator('created_at')}
@@ -143,6 +158,16 @@ export default function UserTable({ profiles, onUpdate, onSuspend }: UserTablePr
                       }`}>
                         {p.role === 'admin' ? '관리자' : '사용자'}
                       </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      {p.is_premium || p.role === 'admin' ? (
+                        <span className="inline-flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                          <Crown className="w-3 h-3" />
+                          {p.role === 'admin' ? '관리자' : 'PRO'}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-2">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
@@ -177,6 +202,26 @@ export default function UserTable({ profiles, onUpdate, onSuspend }: UserTablePr
                           )}
                         </button>
 
+                        {/* 프리미엄 토글 */}
+                        {p.role !== 'admin' && (
+                          <button
+                            onClick={() => handleTogglePremium(p)}
+                            disabled={togglingPremium === p.id}
+                            title={p.is_premium ? '프리미엄 해제' : '프리미엄 부여'}
+                            className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md transition-colors disabled:opacity-40 ${
+                              p.is_premium
+                                ? 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/20'
+                                : 'text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20'
+                            }`}
+                          >
+                            {togglingPremium === p.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <><Crown className="w-3.5 h-3.5" /> {p.is_premium ? 'PRO해제' : 'PRO'}</>
+                            )}
+                          </button>
+                        )}
+
                         {/* 퇴출/복원 */}
                         <button
                           onClick={() => setConfirmTarget(p)}
@@ -203,7 +248,7 @@ export default function UserTable({ profiles, onUpdate, onSuspend }: UserTablePr
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-gray-400">
+                  <td colSpan={8} className="px-4 py-6 text-center text-gray-400">
                     {search ? '검색 결과가 없습니다.' : '등록된 사용자가 없습니다.'}
                   </td>
                 </tr>

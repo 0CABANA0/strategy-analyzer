@@ -7,6 +7,7 @@ interface AuthContextValue {
   user: Profile | null
   isLoading: boolean
   isAdmin: boolean
+  isPremium: boolean
   signUp: (email: string, password: string) => Promise<{ error: string | null; needsVerification: boolean; confirmed: boolean }>
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
@@ -142,9 +143,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user])
 
   const isAdmin = user?.role === 'admin'
+  const isPremium = user?.is_premium === true || isAdmin
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAdmin, signUp, signIn, signOut, logActivity, refreshProfile }}>
+    <AuthContext.Provider value={{ user, isLoading, isAdmin, isPremium, signUp, signIn, signOut, logActivity, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )
