@@ -1,6 +1,6 @@
 /**
- * 16개 전략 프레임워크 메타데이터 정의
- * 효성인력개발원 전략수립 교육 자료 기반
+ * 20개 전략 프레임워크 메타데이터 정의
+ * MBA 전략 프레임워크 기반 실전 전략수립 분석기
  */
 
 import type { FrameworkDefinition, FrameworkId } from '../types'

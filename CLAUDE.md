@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-사업 아이템을 입력하면 20개 전략 프레임워크 기반 전략 PRD를 AI가 자동 생성하는 웹 앱.
-효성인력개발원 전략수립 교육 자료 기반. 5단계 위저드 → 미리보기 → HTML/Markdown 내보내기.
+사업 아이템을 입력하면 20개 전략 프레임워크 기반 전략 PRD를 AI가 자동 생성하는 실전 전략수립 웹 앱.
+MBA 전략 프레임워크 기반. 5단계 위저드 → 미리보기 → HTML/Markdown 내보내기.
 
 ## 명령어
 
