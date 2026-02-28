@@ -4,7 +4,7 @@ import { FRAMEWORKS } from '../data/frameworkDefinitions'
 import { SECTIONS } from '../data/sectionDefinitions'
 import { supabase } from '../lib/supabase'
 import { useToast } from './useToast'
-import type { StrategyDocument, FrameworkState, FrameworkData, StepProgress, RecommendationResult } from '../types'
+import type { StrategyDocument, FrameworkState, FrameworkData, StepProgress, RecommendationResult, ExecutiveSummary, ScenarioResult, FinancialResult } from '../types'
 
 const STORAGE_PREFIX = 'strategy-analyzer:'
 const SYNC_DEBOUNCE_MS = 2000
@@ -20,6 +20,9 @@ type DocumentAction =
   | { type: 'CLEAR_FRAMEWORK'; payload: string }
   | { type: 'UPDATE_FRAMEWORK_FIELD'; payload: { id: string; field: string; value: unknown } }
   | { type: 'SET_RECOMMENDATION'; payload: RecommendationResult }
+  | { type: 'SET_EXECUTIVE_SUMMARY'; payload: ExecutiveSummary }
+  | { type: 'SET_SCENARIO_RESULT'; payload: ScenarioResult }
+  | { type: 'SET_FINANCIAL_RESULT'; payload: FinancialResult }
 
 // --- Context Value Interface ---
 interface StrategyContextValue {
@@ -37,6 +40,9 @@ interface StrategyContextValue {
   getTotalProgress: () => StepProgress
   getFrameworkContext: (frameworkId: string) => Record<string, { name: string; data: unknown }>
   setRecommendation: (result: RecommendationResult) => void
+  setExecutiveSummary: (summary: ExecutiveSummary) => void
+  setScenarioResult: (result: ScenarioResult) => void
+  setFinancialResult: (result: FinancialResult) => void
 }
 
 // --- Initial State ---
@@ -141,6 +147,15 @@ function documentReducer(state: StrategyDocument, action: DocumentAction): Strat
     case 'SET_RECOMMENDATION':
       return { ...state, recommendation: action.payload, updatedAt: new Date().toISOString() }
 
+    case 'SET_EXECUTIVE_SUMMARY':
+      return { ...state, executiveSummary: action.payload, updatedAt: new Date().toISOString() }
+
+    case 'SET_SCENARIO_RESULT':
+      return { ...state, scenarioResult: action.payload, updatedAt: new Date().toISOString() }
+
+    case 'SET_FINANCIAL_RESULT':
+      return { ...state, financialResult: action.payload, updatedAt: new Date().toISOString() }
+
     default:
       return state
   }
@@ -187,6 +202,9 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
           current_step: state.currentStep,
           frameworks: state.frameworks,
           recommendation: state.recommendation ?? null,
+          executive_summary: state.executiveSummary ?? null,
+          scenario_result: state.scenarioResult ?? null,
+          financial_result: state.financialResult ?? null,
           created_at: state.createdAt,
           updated_at: state.updatedAt,
         }, { onConflict: 'id' }).then(({ error }) => {
@@ -235,6 +253,18 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
 
   const setRecommendation = useCallback((result: RecommendationResult) => {
     dispatch({ type: 'SET_RECOMMENDATION', payload: result })
+  }, [])
+
+  const setExecutiveSummary = useCallback((summary: ExecutiveSummary) => {
+    dispatch({ type: 'SET_EXECUTIVE_SUMMARY', payload: summary })
+  }, [])
+
+  const setScenarioResult = useCallback((result: ScenarioResult) => {
+    dispatch({ type: 'SET_SCENARIO_RESULT', payload: result })
+  }, [])
+
+  const setFinancialResult = useCallback((result: FinancialResult) => {
+    dispatch({ type: 'SET_FINANCIAL_RESULT', payload: result })
   }, [])
 
   // --- Computed ---
@@ -286,6 +316,9 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
     clearFramework,
     updateFrameworkField,
     setRecommendation,
+    setExecutiveSummary,
+    setScenarioResult,
+    setFinancialResult,
     getStepProgress,
     getTotalProgress,
     getFrameworkContext,

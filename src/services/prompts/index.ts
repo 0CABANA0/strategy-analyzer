@@ -6,6 +6,10 @@ import { genericStrategy, stp, errc, fourP, wbs } from './step4'
 import { kpi } from './step5'
 
 export { recommendationPrompt } from './recommendation'
+export { consistencyCheckPrompt } from './validation'
+export { executiveSummaryPrompt } from './executive'
+export { scenarioPrompt } from './scenario'
+export { financialPrompt } from './financial'
 
 export const promptTemplates: Record<string, PromptTemplate> = {
   faw,

@@ -16,3 +16,9 @@ export type { AiCallParams, PromptResult, PromptContext, PromptTemplate, OpenRou
 export type { FrameworkRecommendation, RecommendationResult } from './recommendation'
 
 export type { Profile, ActivityLog, AuthState } from './auth'
+
+export type { ConsistencyIssue, ConsistencyResult, ExecutiveSummary } from './validation'
+
+export type { ScenarioType, ScenarioStrategy, ScenarioResult } from './scenario'
+
+export type { MarketSizing, RevenueProjection, FinancialResult } from './financial'

@@ -1,5 +1,8 @@
 import type { FrameworkData } from './framework'
 import type { RecommendationResult } from './recommendation'
+import type { ExecutiveSummary } from './validation'
+import type { ScenarioResult } from './scenario'
+import type { FinancialResult } from './financial'
 
 export type FrameworkStatus = 'empty' | 'generating' | 'completed' | 'error'
 
@@ -18,6 +21,9 @@ export interface StrategyDocument {
   currentStep: number
   frameworks: Record<string, FrameworkState>
   recommendation?: RecommendationResult
+  executiveSummary?: ExecutiveSummary
+  scenarioResult?: ScenarioResult
+  financialResult?: FinancialResult
 }
 
 export interface DocumentMeta {
