@@ -7,7 +7,8 @@ import ExecutiveSummaryPanel from '../components/executive/ExecutiveSummaryPanel
 import ScenarioPanel from '../components/scenario/ScenarioPanel'
 import FinancialPanel from '../components/financial/FinancialPanel'
 import TemplateSelector from '../components/pptx/TemplateSelector'
-import { ArrowLeft, FileText, Globe, ShieldCheck, Briefcase, GitBranch, Calculator, Presentation } from 'lucide-react'
+import FrameworkDAG from '../components/visualization/FrameworkDAG'
+import { ArrowLeft, FileText, Globe, ShieldCheck, Briefcase, GitBranch, Calculator, Presentation, Network } from 'lucide-react'
 import { exportHtml } from '../utils/exportHtml'
 import { exportMarkdown } from '../utils/exportMarkdown'
 import { exportPptx } from '../utils/exportPptx'
@@ -15,9 +16,10 @@ import { useToast } from '../hooks/useToast'
 import { getSelectedTemplate, getSelectedTemplateId } from '../utils/pptxTemplateStore'
 import type { PptxTemplate } from '../types/pptxTemplate'
 
-type AnalysisPanel = 'validation' | 'executive' | 'scenario' | 'financial'
+type AnalysisPanel = 'dependency' | 'validation' | 'executive' | 'scenario' | 'financial'
 
 const PANEL_CONFIG: { key: AnalysisPanel; label: string; icon: React.ReactNode; color: string }[] = [
+  { key: 'dependency', label: '의존성 맵', icon: <Network className="w-4 h-4" />, color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400' },
   { key: 'validation', label: '전략검증', icon: <ShieldCheck className="w-4 h-4" />, color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400' },
   { key: 'executive', label: '요약', icon: <Briefcase className="w-4 h-4" />, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' },
   { key: 'scenario', label: '시나리오', icon: <GitBranch className="w-4 h-4" />, color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400' },
@@ -131,6 +133,7 @@ export default function PreviewPage() {
 
       {/* 분석 패널 (조건부 렌더링) */}
       <div className="no-print">
+        {activePanels.has('dependency') && <FrameworkDAG />}
         {activePanels.has('executive') && <ExecutiveSummaryPanel />}
         {activePanels.has('validation') && <ConsistencyPanel />}
         {activePanels.has('scenario') && <ScenarioPanel />}
