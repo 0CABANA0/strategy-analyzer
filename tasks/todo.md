@@ -1,10 +1,14 @@
-# 현재 작업: 5가지 개선 — 완료
+# 현재 작업: PPTX 템플릿 커스터마이징 시스템 — 완료
 
 ## DONE
 
-- [x] **Skywork 제거** — skyworkProvider 삭제, ModelSelector/useSettings/useFinancialSimulation/테스트/.env.example에서 Skywork 코드 제거, OpenRouter 통일
-- [x] **프리미엄 제한 제거** — useAuth에서 isPremium=!!user, useFinancialSimulation/FinancialPanel/PreviewPage/exportPptx/UserTable에서 프리미엄 잠금 제거
-- [x] **FAW 추천 배너 개선** — SectionContainer에서 FAW 미완료 시 배너 표시 (기존: 추천 결과 없을 때만)
-- [x] **전략검증→재분석** — ConsistencyPanel IssueCard에 "재분석" 버튼 추가, useAiGeneration.generateAll로 관련 프레임워크 재생성
-- [x] **PPTX 슬라이드 템플릿** — 3종 템플릿(bullets, key-value, table) 시스템으로 교체. 필드 타입별 자동 분류→최적 템플릿 렌더링
+- [x] **PptxTemplate 타입 정의** — 디자인 토큰(colors, fonts, layout) 인터페이스 + 기본/내장 템플릿 상수
+- [x] **템플릿 저장소** — localStorage CRUD + PPTX 테마 XML 추출 (JSZip + DOMParser)
+- [x] **TemplateSelector UI** — 드롭다운 선택 + 업로드 + 삭제 컴포넌트
+- [x] **exportPptx 리팩토링** — 하드코딩 색상/폰트/레이아웃 → 템플릿 파라미터 기반
+- [x] **PreviewPage 통합** — TemplateSelector + PPTX 버튼 연동
 - [x] 검증: typecheck + test(173개) + build 모두 통과
+
+## DONE (이전 작업)
+
+- [x] Skywork 제거, 프리미엄 해제, FAW 배너, 재분석 버튼, PPTX 슬라이드 템플릿 3종

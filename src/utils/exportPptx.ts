@@ -2,6 +2,7 @@
  * PPTX 슬라이드 내보내기
  * pptxgenjs를 사용하여 브라우저에서 직접 .pptx 생성
  * 동적 import로 번들 크기 최적화 (사용 시에만 로드)
+ * 템플릿 시스템: 색상/폰트/레이아웃을 PptxTemplate에서 주입
  */
 import type PptxGenJS from 'pptxgenjs'
 import type { StrategyDocument } from '../types/document'
@@ -9,30 +10,29 @@ import type { FrameworkDefinition } from '../types/framework'
 import type { ExecutiveSummary } from '../types/validation'
 import type { ScenarioResult, ScenarioStrategy } from '../types/scenario'
 import type { FinancialResult } from '../types/financial'
+import type { PptxTemplate, PptxTemplateColors } from '../types/pptxTemplate'
+import { DEFAULT_TEMPLATE } from '../types/pptxTemplate'
 import { FRAMEWORKS } from '../data/frameworkDefinitions'
 import { SECTIONS } from '../data/sectionDefinitions'
 
-// ── 디자인 상수 ──
+// ── 시맨틱 컬러 (템플릿 무관) ──
 
-const COLORS = {
-  titleBg: '1A365D',
-  white: 'FFFFFF',
-  text: '333333',
-  textLight: '666666',
-  tableHeader: '2B579A',
-  tableStripe: 'F0F4FA',
-  accent: 'E67E22',
+const SEM = {
   green: '27AE60',
   red: 'E74C3C',
   yellow: 'F39C12',
-  border: 'D1D5DB',
 } as const
 
-const FONT = '맑은 고딕'
-const MARGIN_X = 0.6
-const CONTENT_W = 8.8
+// ── 내보내기 컨텍스트 (exportPptx 호출 시 초기화) ──
 
-/** Tailwind 색상명 → hex 매핑 */
+let C: PptxTemplateColors  // 템플릿 색상
+let FT: string              // 제목 폰트
+let FB: string              // 본문 폰트
+let MX: number              // 좌우 마진
+let CW: number              // 콘텐츠 폭
+let SW: number              // 슬라이드 전체 폭
+
+/** Tailwind 색상명 → hex 매핑 (섹션 디바이더용, 템플릿 무관) */
 const COLOR_MAP: Record<string, string> = {
   amber: 'D97706',
   blue: '2563EB',
@@ -52,23 +52,29 @@ const COLOR_MAP: Record<string, string> = {
 }
 
 function getColorHex(colorName: string): string {
-  return COLOR_MAP[colorName] || COLORS.tableHeader
+  return COLOR_MAP[colorName] || C.tableHeader
+}
+
+/** 열 폭 비율을 총 폭에 맞게 스케일링 */
+function scaleColW(original: number[], targetW: number): number[] {
+  const sum = original.reduce((a, b) => a + b, 0)
+  return original.map((w) => (w / sum) * targetW)
 }
 
 // ── 슬라이드 빌더 헬퍼 ──
 
 function addTitleSlide(pptx: PptxGenJS, state: StrategyDocument): void {
   const slide = pptx.addSlide()
-  slide.background = { color: COLORS.titleBg }
+  slide.background = { color: C.primaryDark }
 
   slide.addText('전략 PRD', {
-    x: MARGIN_X, y: 1.2, w: CONTENT_W, h: 0.6,
-    fontSize: 16, fontFace: FONT, color: 'A0AEC0',
+    x: MX, y: 1.2, w: CW, h: 0.6,
+    fontSize: 16, fontFace: FB, color: 'A0AEC0',
     align: 'center',
   })
   slide.addText(state.businessItem, {
-    x: MARGIN_X, y: 1.8, w: CONTENT_W, h: 1.4,
-    fontSize: 32, fontFace: FONT, color: COLORS.white, bold: true,
+    x: MX, y: 1.8, w: CW, h: 1.4,
+    fontSize: 32, fontFace: FT, color: C.white, bold: true,
     align: 'center', valign: 'middle',
   })
 
@@ -76,13 +82,13 @@ function addTitleSlide(pptx: PptxGenJS, state: StrategyDocument): void {
     year: 'numeric', month: 'long', day: 'numeric',
   })
   slide.addText(date, {
-    x: MARGIN_X, y: 3.6, w: CONTENT_W, h: 0.5,
-    fontSize: 14, fontFace: FONT, color: 'A0AEC0',
+    x: MX, y: 3.6, w: CW, h: 0.5,
+    fontSize: 14, fontFace: FB, color: 'A0AEC0',
     align: 'center',
   })
   slide.addText('Strategy Analyzer로 생성', {
-    x: MARGIN_X, y: 4.8, w: CONTENT_W, h: 0.4,
-    fontSize: 10, fontFace: FONT, color: '718096',
+    x: MX, y: 4.8, w: CW, h: 0.4,
+    fontSize: 10, fontFace: FB, color: '718096',
     align: 'center',
   })
 }
@@ -98,17 +104,17 @@ function addExecutiveSummarySlides(pptx: PptxGenJS, es: ExecutiveSummary): void 
     no_go: '❌ NO-GO',
   }
   const recColors: Record<string, string> = {
-    go: COLORS.green,
-    conditional_go: COLORS.yellow,
-    no_go: COLORS.red,
+    go: SEM.green,
+    conditional_go: SEM.yellow,
+    no_go: SEM.red,
   }
 
   // 의사결정 배지
   slide1.addText(recLabels[es.recommendation] || es.recommendation, {
-    x: 6.6, y: 0.2, w: 2.8, h: 0.4,
-    fontSize: 14, fontFace: FONT, bold: true,
-    color: COLORS.white,
-    fill: { color: recColors[es.recommendation] || COLORS.accent },
+    x: MX + CW - 2.8, y: 0.2, w: 2.8, h: 0.4,
+    fontSize: 14, fontFace: FB, bold: true,
+    color: C.white,
+    fill: { color: recColors[es.recommendation] || C.secondary },
     align: 'center', valign: 'middle',
     rectRadius: 0.1,
   })
@@ -121,22 +127,22 @@ function addExecutiveSummarySlides(pptx: PptxGenJS, es: ExecutiveSummary): void 
   ]
   for (const item of items) {
     slide1.addText([
-      { text: `${item.label}\n`, options: { fontSize: 11, bold: true, color: COLORS.tableHeader } },
-      { text: item.value, options: { fontSize: 11, color: COLORS.text } },
+      { text: `${item.label}\n`, options: { fontSize: 11, bold: true, color: C.tableHeader } },
+      { text: item.value, options: { fontSize: 11, color: C.text } },
     ], {
-      x: MARGIN_X, y, w: CONTENT_W, h: 0.9,
-      fontFace: FONT, valign: 'top', paraSpaceAfter: 4,
+      x: MX, y, w: CW, h: 0.9,
+      fontFace: FB, valign: 'top', paraSpaceAfter: 4,
     })
     y += 0.95
   }
 
   // 의사결정 근거
   slide1.addText([
-    { text: '의사결정 근거\n', options: { fontSize: 11, bold: true, color: COLORS.tableHeader } },
-    { text: es.recommendationReason, options: { fontSize: 11, color: COLORS.text } },
+    { text: '의사결정 근거\n', options: { fontSize: 11, bold: true, color: C.tableHeader } },
+    { text: es.recommendationReason, options: { fontSize: 11, color: C.text } },
   ], {
-    x: MARGIN_X, y, w: CONTENT_W, h: 0.8,
-    fontFace: FONT, valign: 'top',
+    x: MX, y, w: CW, h: 0.8,
+    fontFace: FB, valign: 'top',
   })
 
   // 슬라이드 2: 핵심 수치 + 리스크 (데이터 있을 경우만)
@@ -148,34 +154,34 @@ function addExecutiveSummarySlides(pptx: PptxGenJS, es: ExecutiveSummary): void 
     if (es.keyMetrics?.length) {
       const rows: PptxGenJS.TableRow[] = [
         [
-          { text: '지표', options: { bold: true, color: COLORS.white, fill: { color: COLORS.tableHeader }, fontSize: 11, fontFace: FONT } },
-          { text: '값', options: { bold: true, color: COLORS.white, fill: { color: COLORS.tableHeader }, fontSize: 11, fontFace: FONT } },
+          { text: '지표', options: { bold: true, color: C.white, fill: { color: C.tableHeader }, fontSize: 11, fontFace: FB } },
+          { text: '값', options: { bold: true, color: C.white, fill: { color: C.tableHeader }, fontSize: 11, fontFace: FB } },
         ],
         ...es.keyMetrics.map((m, i): PptxGenJS.TableRow => [
-          { text: m.label, options: { fontSize: 11, fontFace: FONT, fill: { color: i % 2 ? COLORS.tableStripe : COLORS.white } } },
-          { text: m.value, options: { fontSize: 11, fontFace: FONT, bold: true, fill: { color: i % 2 ? COLORS.tableStripe : COLORS.white } } },
+          { text: m.label, options: { fontSize: 11, fontFace: FB, fill: { color: i % 2 ? C.tableStripe : C.white } } },
+          { text: m.value, options: { fontSize: 11, fontFace: FB, bold: true, fill: { color: i % 2 ? C.tableStripe : C.white } } },
         ]),
       ]
       slide2.addTable(rows, {
-        x: MARGIN_X, y: y2, w: CONTENT_W,
-        border: { type: 'solid', pt: 0.5, color: COLORS.border },
-        colW: [5, 3.8],
+        x: MX, y: y2, w: CW,
+        border: { type: 'solid', pt: 0.5, color: C.border },
+        colW: scaleColW([5, 3.8], CW),
       })
       y2 += 0.35 * (es.keyMetrics.length + 1) + 0.3
     }
 
     if (es.risks?.length) {
       slide2.addText('주요 리스크', {
-        x: MARGIN_X, y: y2, w: CONTENT_W, h: 0.4,
-        fontSize: 13, fontFace: FONT, bold: true, color: COLORS.red,
+        x: MX, y: y2, w: CW, h: 0.4,
+        fontSize: 13, fontFace: FB, bold: true, color: SEM.red,
       })
       y2 += 0.4
       const bullets = es.risks.map((r) => ({
         text: r,
-        options: { fontSize: 11, fontFace: FONT, color: COLORS.text, bullet: { type: 'bullet' as const } },
+        options: { fontSize: 11, fontFace: FB, color: C.text, bullet: { type: 'bullet' as const } },
       }))
       slide2.addText(bullets, {
-        x: MARGIN_X, y: y2, w: CONTENT_W, h: 3.0,
+        x: MX, y: y2, w: CW, h: 3.0,
         valign: 'top', paraSpaceAfter: 4,
       })
     }
@@ -188,35 +194,35 @@ function addSectionDivider(pptx: PptxGenJS, number: number, title: string, subti
   slide.background = { color: hex }
 
   slide.addText(`SECTION ${number}`, {
-    x: MARGIN_X, y: 1.8, w: CONTENT_W, h: 0.5,
-    fontSize: 14, fontFace: FONT, color: COLORS.white, bold: true,
+    x: MX, y: 1.8, w: CW, h: 0.5,
+    fontSize: 14, fontFace: FT, color: C.white, bold: true,
     align: 'left',
   })
   slide.addText(title, {
-    x: MARGIN_X, y: 2.3, w: CONTENT_W, h: 1.0,
-    fontSize: 32, fontFace: FONT, color: COLORS.white, bold: true,
+    x: MX, y: 2.3, w: CW, h: 1.0,
+    fontSize: 32, fontFace: FT, color: C.white, bold: true,
     align: 'left',
   })
   slide.addText(subtitle, {
-    x: MARGIN_X, y: 3.3, w: CONTENT_W, h: 0.5,
-    fontSize: 14, fontFace: FONT, color: COLORS.white,
+    x: MX, y: 3.3, w: CW, h: 0.5,
+    fontSize: 14, fontFace: FB, color: C.white,
     align: 'left',
   })
 }
 
 function addSlideHeader(slide: PptxGenJS.Slide, section: string, title: string): void {
-  // 상단 구분선 (얇은 파란색 직사각형)
+  // 상단 구분선 (템플릿 primary 컬러)
   slide.addShape('rect' as PptxGenJS.SHAPE_NAME, {
-    x: 0, y: 0, w: 10, h: 0.06,
-    fill: { color: COLORS.tableHeader },
+    x: 0, y: 0, w: SW, h: 0.06,
+    fill: { color: C.tableHeader },
   })
   slide.addText(section, {
-    x: MARGIN_X, y: 0.15, w: CONTENT_W, h: 0.35,
-    fontSize: 10, fontFace: FONT, color: COLORS.textLight,
+    x: MX, y: 0.15, w: CW, h: 0.35,
+    fontSize: 10, fontFace: FB, color: C.textLight,
   })
   slide.addText(title, {
-    x: MARGIN_X, y: 0.45, w: CONTENT_W, h: 0.55,
-    fontSize: 20, fontFace: FONT, bold: true, color: COLORS.titleBg,
+    x: MX, y: 0.45, w: CW, h: 0.55,
+    fontSize: 20, fontFace: FT, bold: true, color: C.primaryDark,
   })
 }
 
@@ -267,8 +273,8 @@ function templateBullets(
 
     // 그룹 라벨
     slide.addText(group.label, {
-      x: MARGIN_X, y, w: CONTENT_W, h: 0.3,
-      fontSize: 12, fontFace: FONT, bold: true, color: COLORS.tableHeader,
+      x: MX, y, w: CW, h: 0.3,
+      fontSize: 12, fontFace: FB, bold: true, color: C.tableHeader,
     })
     y += 0.35
     itemCount++
@@ -276,11 +282,11 @@ function templateBullets(
     // 불릿 아이템
     const bullets = group.items.map((item) => ({
       text: item,
-      options: { fontSize: 11, fontFace: FONT, color: COLORS.text, bullet: { type: 'bullet' as const } },
+      options: { fontSize: 11, fontFace: FB, color: C.text, bullet: { type: 'bullet' as const } },
     }))
     const listH = Math.min(group.items.length * 0.24 + 0.05, 3.2)
     slide.addText(bullets, {
-      x: MARGIN_X + 0.3, y, w: CONTENT_W - 0.3, h: listH,
+      x: MX + 0.3, y, w: CW - 0.3, h: listH,
       valign: 'top', paraSpaceAfter: 3,
     })
     y += listH + 0.15
@@ -307,25 +313,25 @@ function templateKeyValue(
       {
         text: pair.key,
         options: {
-          bold: true, fontSize: 11, fontFace: FONT, color: COLORS.tableHeader,
-          fill: { color: idx % 2 ? COLORS.tableStripe : COLORS.white },
+          bold: true, fontSize: 11, fontFace: FB, color: C.tableHeader,
+          fill: { color: idx % 2 ? C.tableStripe : C.white },
           valign: 'top' as const,
         },
       },
       {
         text: pair.value,
         options: {
-          fontSize: 11, fontFace: FONT, color: COLORS.text,
-          fill: { color: idx % 2 ? COLORS.tableStripe : COLORS.white },
+          fontSize: 11, fontFace: FB, color: C.text,
+          fill: { color: idx % 2 ? C.tableStripe : C.white },
           valign: 'top' as const,
         },
       },
     ])
 
     slide.addTable(rows, {
-      x: MARGIN_X, y: 1.1, w: CONTENT_W,
-      colW: [2.5, 6.3],
-      border: { type: 'solid', pt: 0.5, color: COLORS.border },
+      x: MX, y: 1.1, w: CW,
+      colW: scaleColW([2.5, 6.3], CW),
+      border: { type: 'solid', pt: 0.5, color: C.border },
       rowH: chunk.map((pair) => Math.max(0.45, Math.ceil(pair.value.length / 55) * 0.32)),
     })
   }
@@ -342,16 +348,16 @@ function templateTable(
   addSlideHeader(slide, sectionTitle, fwTitle)
 
   slide.addText(content.label, {
-    x: MARGIN_X, y: 1.05, w: CONTENT_W, h: 0.3,
-    fontSize: 12, fontFace: FONT, bold: true, color: COLORS.tableHeader,
+    x: MX, y: 1.05, w: CW, h: 0.3,
+    fontSize: 12, fontFace: FB, bold: true, color: C.tableHeader,
   })
 
   const tableRows = buildTableRows(content.columns, content.rows)
 
   slide.addTable(tableRows, {
-    x: MARGIN_X, y: 1.4, w: CONTENT_W,
-    colW: distributeColumnWidths(content.columns.length, CONTENT_W),
-    border: { type: 'solid', pt: 0.5, color: COLORS.border },
+    x: MX, y: 1.4, w: CW,
+    colW: distributeColumnWidths(content.columns.length, CW),
+    border: { type: 'solid', pt: 0.5, color: C.border },
     autoPage: true,
     autoPageRepeatHeader: true,
     autoPageHeaderRows: 1,
@@ -427,8 +433,8 @@ function buildTableRows(columns: string[], rows: unknown[]): PptxGenJS.TableRow[
   const headerRow: PptxGenJS.TableRow = columns.map((col) => ({
     text: col,
     options: {
-      bold: true, color: COLORS.white, fontSize: 10, fontFace: FONT,
-      fill: { color: COLORS.tableHeader },
+      bold: true, color: C.white, fontSize: 10, fontFace: FB,
+      fill: { color: C.tableHeader },
       valign: 'middle' as const,
       align: 'center' as const,
     },
@@ -439,8 +445,8 @@ function buildTableRows(columns: string[], rows: unknown[]): PptxGenJS.TableRow[
     return cells.map((cell) => ({
       text: String(cell ?? ''),
       options: {
-        fontSize: 10, fontFace: FONT, color: COLORS.text,
-        fill: { color: i % 2 ? COLORS.tableStripe : COLORS.white },
+        fontSize: 10, fontFace: FB, color: C.text,
+        fill: { color: i % 2 ? C.tableStripe : C.white },
         valign: 'middle' as const,
       },
     }))
@@ -471,39 +477,39 @@ function addScenarioSlides(pptx: PptxGenJS, sr: ScenarioResult): void {
   const compRows: PptxGenJS.TableRow[] = [
     ['시나리오', '리스크', '예상 ROI', '타임라인'].map((h) => ({
       text: h,
-      options: { bold: true, color: COLORS.white, fontSize: 10, fontFace: FONT, fill: { color: COLORS.tableHeader }, align: 'center' as const },
+      options: { bold: true, color: C.white, fontSize: 10, fontFace: FB, fill: { color: C.tableHeader }, align: 'center' as const },
     })),
     ...sr.scenarios.map((s, i): PptxGenJS.TableRow => {
       const isRec = s.type === sr.recommendation
       return [s.label + (isRec ? ' ⭐' : ''), s.riskLevel, s.expectedROI, s.timeline].map((val) => ({
         text: val,
         options: {
-          fontSize: 10, fontFace: FONT, color: COLORS.text,
-          fill: { color: i % 2 ? COLORS.tableStripe : COLORS.white },
+          fontSize: 10, fontFace: FB, color: C.text,
+          fill: { color: i % 2 ? C.tableStripe : C.white },
           align: 'center' as const,
         },
       }))
     }),
   ]
   summarySlide.addTable(compRows, {
-    x: MARGIN_X, y: 1.2, w: CONTENT_W,
-    colW: [3, 2, 2, 1.8],
-    border: { type: 'solid', pt: 0.5, color: COLORS.border },
+    x: MX, y: 1.2, w: CW,
+    colW: scaleColW([3, 2, 2, 1.8], CW),
+    border: { type: 'solid', pt: 0.5, color: C.border },
   })
 
   // 비교 텍스트
   summarySlide.addText(sr.comparison, {
-    x: MARGIN_X, y: 2.8, w: CONTENT_W, h: 1.2,
-    fontSize: 11, fontFace: FONT, color: COLORS.text, valign: 'top',
+    x: MX, y: 2.8, w: CW, h: 1.2,
+    fontSize: 11, fontFace: FB, color: C.text, valign: 'top',
   })
 
   // AI 추천
   summarySlide.addText([
-    { text: 'AI 추천: ', options: { bold: true, fontSize: 12, color: COLORS.tableHeader } },
-    { text: `${typeLabels[sr.recommendation] || sr.recommendation} — ${sr.recommendationReason}`, options: { fontSize: 11, color: COLORS.text } },
+    { text: 'AI 추천: ', options: { bold: true, fontSize: 12, color: C.tableHeader } },
+    { text: `${typeLabels[sr.recommendation] || sr.recommendation} — ${sr.recommendationReason}`, options: { fontSize: 11, color: C.text } },
   ], {
-    x: MARGIN_X, y: 4.2, w: CONTENT_W, h: 0.8,
-    fontFace: FONT, valign: 'top',
+    x: MX, y: 4.2, w: CW, h: 0.8,
+    fontFace: FB, valign: 'top',
   })
 }
 
@@ -520,8 +526,8 @@ function addScenarioDetailSlide(
   let y = 1.1
   // 개요
   slide.addText(s.overview, {
-    x: MARGIN_X, y, w: CONTENT_W, h: 0.6,
-    fontSize: 11, fontFace: FONT, color: COLORS.text, valign: 'top',
+    x: MX, y, w: CW, h: 0.6,
+    fontSize: 11, fontFace: FB, color: C.text, valign: 'top',
   })
   y += 0.65
 
@@ -529,7 +535,7 @@ function addScenarioDetailSlide(
   const stratRows: PptxGenJS.TableRow[] = [
     ['항목', '내용'].map((h) => ({
       text: h,
-      options: { bold: true, color: COLORS.white, fontSize: 10, fontFace: FONT, fill: { color: COLORS.tableHeader }, align: 'center' as const },
+      options: { bold: true, color: C.white, fontSize: 10, fontFace: FB, fill: { color: C.tableHeader }, align: 'center' as const },
     })),
     ...([
       ['경쟁전략', s.genericStrategy.strategy],
@@ -541,26 +547,26 @@ function addScenarioDetailSlide(
       ['유통', s.fourP.place],
       ['프로모션', s.fourP.promotion],
     ] as [string, string][]).map(([label, val], i): PptxGenJS.TableRow => [
-      { text: label, options: { bold: true, fontSize: 10, fontFace: FONT, fill: { color: i % 2 ? COLORS.tableStripe : COLORS.white } } },
-      { text: val, options: { fontSize: 10, fontFace: FONT, color: COLORS.text, fill: { color: i % 2 ? COLORS.tableStripe : COLORS.white } } },
+      { text: label, options: { bold: true, fontSize: 10, fontFace: FB, fill: { color: i % 2 ? C.tableStripe : C.white } } },
+      { text: val, options: { fontSize: 10, fontFace: FB, color: C.text, fill: { color: i % 2 ? C.tableStripe : C.white } } },
     ]),
   ]
   slide.addTable(stratRows, {
-    x: MARGIN_X, y, w: CONTENT_W,
-    colW: [2, 6.8],
-    border: { type: 'solid', pt: 0.5, color: COLORS.border },
+    x: MX, y, w: CW,
+    colW: scaleColW([2, 6.8], CW),
+    border: { type: 'solid', pt: 0.5, color: C.border },
     autoPage: true,
   })
   y += stratRows.length * 0.28 + 0.2
 
   // 하단 지표
-  const riskColors = { high: COLORS.red, medium: COLORS.yellow, low: COLORS.green }
+  const riskColors = { high: SEM.red, medium: SEM.yellow, low: SEM.green }
   slide.addText([
-    { text: `리스크: ${s.riskLevel}`, options: { fontSize: 10, bold: true, color: riskColors[s.riskLevel] || COLORS.text } },
-    { text: `  |  예상 ROI: ${s.expectedROI}  |  타임라인: ${s.timeline}`, options: { fontSize: 10, color: COLORS.textLight } },
+    { text: `리스크: ${s.riskLevel}`, options: { fontSize: 10, bold: true, color: riskColors[s.riskLevel] || C.text } },
+    { text: `  |  예상 ROI: ${s.expectedROI}  |  타임라인: ${s.timeline}`, options: { fontSize: 10, color: C.textLight } },
   ], {
-    x: MARGIN_X, y: Math.min(y, 4.8), w: CONTENT_W, h: 0.4,
-    fontFace: FONT,
+    x: MX, y: Math.min(y, 4.8), w: CW, h: 0.4,
+    fontFace: FB,
   })
 }
 
@@ -577,6 +583,7 @@ function addFinancialSlides(pptx: PptxGenJS, fr: FinancialResult): void {
     { name: 'SOM', value: fr.marketSizing.som.value, desc: fr.marketSizing.som.description, unit: fr.marketSizing.som.unit },
   ]
 
+  const chartW = CW * 0.55
   chartSlide.addChart('bar' as PptxGenJS.CHART_NAME, [
     {
       name: '시장 규모',
@@ -584,23 +591,23 @@ function addFinancialSlides(pptx: PptxGenJS, fr: FinancialResult): void {
       values: marketData.map((d) => d.value),
     },
   ], {
-    x: MARGIN_X, y: 1.2, w: 5.0, h: 3.5,
+    x: MX, y: 1.2, w: chartW, h: 3.5,
     showTitle: false,
     showValue: true,
     dataLabelFontSize: 10,
     catAxisLabelFontSize: 12,
     valAxisLabelFontSize: 9,
-    chartColors: ['2B579A'],
+    chartColors: [C.tableHeader],
     valAxisLabelFormatCode: '#,##0',
   })
 
   // 오른쪽에 설명 텍스트
   const descTexts = marketData.map((d) => ({
     text: `${d.name}: ${d.value.toLocaleString()}${d.unit}\n${d.desc}\n\n`,
-    options: { fontSize: 10, fontFace: FONT, color: COLORS.text },
+    options: { fontSize: 10, fontFace: FB, color: C.text },
   }))
   chartSlide.addText(descTexts, {
-    x: 5.8, y: 1.2, w: 3.6, h: 3.5,
+    x: MX + chartW + 0.2, y: 1.2, w: CW - chartW - 0.2, h: 3.5,
     valign: 'top',
   })
 
@@ -626,7 +633,7 @@ function addFinancialSlides(pptx: PptxGenJS, fr: FinancialResult): void {
         values: fr.revenueProjections.map((r) => r.profit),
       },
     ], {
-      x: MARGIN_X, y: 1.2, w: CONTENT_W, h: 3.0,
+      x: MX, y: 1.2, w: CW, h: 3.0,
       showTitle: false,
       showValue: false,
       showLegend: true,
@@ -634,7 +641,7 @@ function addFinancialSlides(pptx: PptxGenJS, fr: FinancialResult): void {
       legendFontSize: 9,
       catAxisLabelFontSize: 11,
       valAxisLabelFontSize: 9,
-      chartColors: ['2B579A', 'E67E22', '27AE60'],
+      chartColors: [C.tableHeader, C.secondary, SEM.green],
       valAxisLabelFormatCode: '#,##0',
     })
 
@@ -642,7 +649,7 @@ function addFinancialSlides(pptx: PptxGenJS, fr: FinancialResult): void {
     const metricRows: PptxGenJS.TableRow[] = [
       ['초기 투자', 'BEP', '3년 ROI', '5년 ROI'].map((h) => ({
         text: h,
-        options: { bold: true, color: COLORS.white, fontSize: 10, fontFace: FONT, fill: { color: COLORS.tableHeader }, align: 'center' as const },
+        options: { bold: true, color: C.white, fontSize: 10, fontFace: FB, fill: { color: C.tableHeader }, align: 'center' as const },
       })),
       [
         `${fr.initialInvestment.toLocaleString()}만원`,
@@ -651,13 +658,13 @@ function addFinancialSlides(pptx: PptxGenJS, fr: FinancialResult): void {
         `${fr.roi5Year}%`,
       ].map((val) => ({
         text: val,
-        options: { fontSize: 11, fontFace: FONT, color: COLORS.text, bold: true, align: 'center' as const },
+        options: { fontSize: 11, fontFace: FB, color: C.text, bold: true, align: 'center' as const },
       })),
     ]
     revSlide.addTable(metricRows, {
-      x: MARGIN_X, y: 4.4, w: CONTENT_W,
-      colW: [2.2, 2.2, 2.2, 2.2],
-      border: { type: 'solid', pt: 0.5, color: COLORS.border },
+      x: MX, y: 4.4, w: CW,
+      colW: scaleColW([2.2, 2.2, 2.2, 2.2], CW),
+      border: { type: 'solid', pt: 0.5, color: C.border },
     })
   }
 
@@ -670,10 +677,10 @@ function addFinancialSlides(pptx: PptxGenJS, fr: FinancialResult): void {
     if (fr.keyAssumptions?.length) {
       const bullets = fr.keyAssumptions.map((a) => ({
         text: a,
-        options: { fontSize: 11, fontFace: FONT, color: COLORS.text, bullet: { type: 'bullet' as const } },
+        options: { fontSize: 11, fontFace: FB, color: C.text, bullet: { type: 'bullet' as const } },
       }))
       assumSlide.addText(bullets, {
-        x: MARGIN_X, y, w: CONTENT_W, h: 2.5,
+        x: MX, y, w: CW, h: 2.5,
         valign: 'top', paraSpaceAfter: 4,
       })
       y += 2.6
@@ -681,11 +688,11 @@ function addFinancialSlides(pptx: PptxGenJS, fr: FinancialResult): void {
 
     if (fr.summary) {
       assumSlide.addText([
-        { text: '재무 요약\n', options: { fontSize: 13, bold: true, color: COLORS.tableHeader } },
-        { text: fr.summary, options: { fontSize: 11, color: COLORS.text } },
+        { text: '재무 요약\n', options: { fontSize: 13, bold: true, color: C.tableHeader } },
+        { text: fr.summary, options: { fontSize: 11, color: C.text } },
       ], {
-        x: MARGIN_X, y, w: CONTENT_W, h: 2.0,
-        fontFace: FONT, valign: 'top',
+        x: MX, y, w: CW, h: 2.0,
+        fontFace: FB, valign: 'top',
       })
     }
   }
@@ -693,31 +700,55 @@ function addFinancialSlides(pptx: PptxGenJS, fr: FinancialResult): void {
 
 function addEndSlide(pptx: PptxGenJS): void {
   const slide = pptx.addSlide()
-  slide.background = { color: COLORS.titleBg }
+  slide.background = { color: C.primaryDark }
 
   slide.addText('Thank You', {
-    x: MARGIN_X, y: 1.5, w: CONTENT_W, h: 1.0,
-    fontSize: 36, fontFace: FONT, color: COLORS.white, bold: true,
+    x: MX, y: 1.5, w: CW, h: 1.0,
+    fontSize: 36, fontFace: FT, color: C.white, bold: true,
     align: 'center',
   })
   slide.addText('Generated by Strategy Analyzer', {
-    x: MARGIN_X, y: 2.8, w: CONTENT_W, h: 0.5,
-    fontSize: 14, fontFace: FONT, color: 'A0AEC0',
+    x: MX, y: 2.8, w: CW, h: 0.5,
+    fontSize: 14, fontFace: FB, color: 'A0AEC0',
     align: 'center',
   })
   slide.addText('strategy-analyzer-one.vercel.app', {
-    x: MARGIN_X, y: 3.5, w: CONTENT_W, h: 0.4,
-    fontSize: 11, fontFace: FONT, color: '718096',
+    x: MX, y: 3.5, w: CW, h: 0.4,
+    fontSize: 11, fontFace: FB, color: '718096',
     align: 'center',
   })
 }
 
 // ── 메인 내보내기 함수 ──
 
-export async function exportPptx(state: StrategyDocument): Promise<void> {
+export async function exportPptx(state: StrategyDocument, template?: PptxTemplate): Promise<void> {
+  // 템플릿 컨텍스트 초기화
+  const t = template || DEFAULT_TEMPLATE
+  C = t.colors
+  FT = t.fonts.title
+  FB = t.fonts.body
+  MX = 0.6
+
+  // 레이아웃에 따른 슬라이드 폭 계산
+  const layoutWidths: Record<string, number> = {
+    LAYOUT_16x9: 10,
+    LAYOUT_4x3: 10,
+    CUSTOM: t.layout.width || 10,
+  }
+  SW = layoutWidths[t.layout.type] || 10
+  CW = SW - 2 * MX
+
   const { default: PptxGenJSLib } = await import('pptxgenjs')
   const pptx = new PptxGenJSLib()
-  pptx.layout = 'LAYOUT_16x9'
+
+  // 레이아웃 설정
+  if (t.layout.type === 'CUSTOM' && t.layout.width && t.layout.height) {
+    pptx.defineLayout({ name: 'CUSTOM', width: t.layout.width, height: t.layout.height })
+    pptx.layout = 'CUSTOM'
+  } else {
+    pptx.layout = t.layout.type
+  }
+
   pptx.title = `${state.businessItem} - 전략 PRD`
   pptx.author = 'Strategy Analyzer'
   pptx.subject = '전략 PRD'

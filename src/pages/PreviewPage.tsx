@@ -6,11 +6,14 @@ import ConsistencyPanel from '../components/validation/ConsistencyPanel'
 import ExecutiveSummaryPanel from '../components/executive/ExecutiveSummaryPanel'
 import ScenarioPanel from '../components/scenario/ScenarioPanel'
 import FinancialPanel from '../components/financial/FinancialPanel'
+import TemplateSelector from '../components/pptx/TemplateSelector'
 import { ArrowLeft, FileText, Globe, ShieldCheck, Briefcase, GitBranch, Calculator, Presentation } from 'lucide-react'
 import { exportHtml } from '../utils/exportHtml'
 import { exportMarkdown } from '../utils/exportMarkdown'
 import { exportPptx } from '../utils/exportPptx'
 import { useToast } from '../hooks/useToast'
+import { getSelectedTemplate, getSelectedTemplateId } from '../utils/pptxTemplateStore'
+import type { PptxTemplate } from '../types/pptxTemplate'
 
 type AnalysisPanel = 'validation' | 'executive' | 'scenario' | 'financial'
 
@@ -27,6 +30,8 @@ export default function PreviewPage() {
   const toast = useToast()
   const [activePanels, setActivePanels] = useState<Set<AnalysisPanel>>(new Set())
   const [isPptxExporting, setIsPptxExporting] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState(() => getSelectedTemplateId())
+  const [pptxTemplate, setPptxTemplate] = useState<PptxTemplate>(() => getSelectedTemplate())
 
   if (!state?.businessItem) {
     navigate('/', { replace: true })
@@ -44,10 +49,15 @@ export default function PreviewPage() {
 
   const handleHtml = () => exportHtml(state)
   const handleMarkdown = () => exportMarkdown(state)
+  const handleTemplateSelect = (id: string, template: PptxTemplate) => {
+    setSelectedTemplateId(id)
+    setPptxTemplate(template)
+  }
+
   const handlePptx = async () => {
     setIsPptxExporting(true)
     try {
-      await exportPptx(state)
+      await exportPptx(state, pptxTemplate)
       toast.success('PPTX 파일이 다운로드되었습니다.')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'PPTX 생성 중 오류가 발생했습니다.')
@@ -102,6 +112,7 @@ export default function PreviewPage() {
             <FileText className="w-4 h-4" />
             Markdown
           </button>
+          <TemplateSelector selectedId={selectedTemplateId} onSelect={handleTemplateSelect} />
           <button
             onClick={handlePptx}
             disabled={isPptxExporting}
