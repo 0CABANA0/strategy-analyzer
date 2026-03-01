@@ -21,6 +21,8 @@ export type { Profile, ActivityLog, AuthState } from './auth'
 
 export type { ConsistencyIssue, ConsistencyResult, ExecutiveSummary } from './validation'
 
+export type { FieldChange, FrameworkChange, ScoreSnapshot, IssueChangeStatus, TrackedIssue, ImprovementRecord } from './improvement'
+
 export type { ScenarioType, ScenarioStrategy, ScenarioResult } from './scenario'
 
 export type { MarketSizing, RevenueProjection, FinancialResult } from './financial'

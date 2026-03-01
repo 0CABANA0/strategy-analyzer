@@ -32,6 +32,7 @@ export default function PreviewPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const [activePanels, setActivePanels] = useState<Set<AnalysisPanel>>(new Set())
+  const [highlightedFrameworks, setHighlightedFrameworks] = useState<Set<string>>(new Set())
   const [isPdfExporting, setIsPdfExporting] = useState(false)
   const [isPptxExporting, setIsPptxExporting] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState(() => getSelectedTemplateId())
@@ -162,13 +163,13 @@ export default function PreviewPage() {
       <div className="no-print">
         {activePanels.has('dependency') && <FrameworkDAG />}
         {activePanels.has('executive') && <ExecutiveSummaryPanel />}
-        {activePanels.has('validation') && <ConsistencyPanel />}
+        {activePanels.has('validation') && <ConsistencyPanel onHighlightChange={setHighlightedFrameworks} />}
         {activePanels.has('scenario') && <ScenarioPanel />}
         {activePanels.has('financial') && <FinancialPanel />}
       </div>
 
       {/* 문서 미리보기 */}
-      <DocumentPreview state={state} />
+      <DocumentPreview state={state} highlightedFrameworks={highlightedFrameworks} />
     </div>
   )
 }

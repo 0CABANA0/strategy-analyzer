@@ -126,15 +126,26 @@ function TableView({ columns, rows }: TableViewProps) {
 interface FrameworkPreviewProps {
   id: string
   data: FrameworkData
+  isHighlighted?: boolean
 }
 
-function FrameworkPreview({ id, data }: FrameworkPreviewProps) {
+function FrameworkPreview({ id, data, isHighlighted }: FrameworkPreviewProps) {
   const fw = FRAMEWORKS[id]
   if (!fw || !data) return null
 
   return (
-    <div id={`framework-${id}`} className="mb-6 break-inside-avoid">
-      <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">{fw.name}</h3>
+    <div
+      id={`framework-${id}`}
+      className={`mb-6 break-inside-avoid transition-all duration-300 ${isHighlighted ? 'ring-2 ring-indigo-400 rounded-lg bg-indigo-50/30 dark:bg-indigo-950/20 p-3 -mx-3' : ''}`}
+    >
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">{fw.name}</h3>
+        {isHighlighted && (
+          <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-1.5 py-0.5 rounded no-print">
+            ↻ 개선됨
+          </span>
+        )}
+      </div>
       <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">{fw.fullName} — {fw.description}</p>
 
       {Object.entries(fw.fields).map(([key, fieldDef]: [string, FieldDef]) => {
@@ -445,9 +456,10 @@ function FinancialPreview({ data }: { data: FinancialResult }) {
 
 interface DocumentPreviewProps {
   state: StrategyDocument
+  highlightedFrameworks?: Set<string>
 }
 
-export default function DocumentPreview({ state }: DocumentPreviewProps) {
+export default function DocumentPreview({ state, highlightedFrameworks }: DocumentPreviewProps) {
   if (!state) return null
 
   const completedCount = Object.values(state.frameworks).filter(
@@ -486,7 +498,7 @@ export default function DocumentPreview({ state }: DocumentPreviewProps) {
             {section.frameworks.map((fId: string) => {
               const fState = state.frameworks[fId]
               if (fState?.status !== 'completed' || !fState.data) return null
-              return <FrameworkPreview key={fId} id={fId} data={fState.data} />
+              return <FrameworkPreview key={fId} id={fId} data={fState.data} isHighlighted={highlightedFrameworks?.has(fId)} />
             })}
           </div>
         )
