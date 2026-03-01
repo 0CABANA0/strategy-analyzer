@@ -1,28 +1,27 @@
-# 현재 작업: 소스 자료 업로드 기능 (NotebookLM 스타일)
+# strategy-analyzer 작업 현황
 
-## TODO
+## 완료된 작업
 
-- [ ] **타입 정의** — SourceMaterial 인터페이스 + StrategyDocument 확장 + API 멀티모달 지원
-- [ ] **소스 처리 유틸** — 텍스트 읽기, 이미지 리사이즈+Base64, URL 저장
-- [ ] **상태관리 확장** — ADD_SOURCE, REMOVE_SOURCE 리듀서 액션
-- [ ] **소스 업로드 UI** — 드래그앤드롭 + 파일선택 + URL 입력 + 소스 목록
-- [ ] **프롬프트 통합** — buildSourceContext() + 이미지 멀티모달 content block
-- [ ] **OpenRouter 멀티모달** — user 필드를 string | ContentBlock[] 지원
-- [ ] **HomePage 통합** — SourceUploadZone 배치
-- [ ] 검증: typecheck + test + build
+- [x] 소스 자료 업로드 (NotebookLM 스타일) — 텍스트/이미지/URL, 멀티모달 AI 전달
+- [x] 회원가입 이름(display_name) 입력 필드 추가
+- [x] 재분석 완료 토스트 확인 메시지
+- [x] 일관성 검증 피드백 재분석 + 자동 재검증
+- [x] PPTX 템플릿 커스터마이징 시스템
+- [x] Skywork 제거, 프리미엄 해제, FAW 배너, PPTX 슬라이드 템플릿 3종
+- [x] PPTX 슬라이드 내보내기 (pptxgenjs)
+- [x] 4대 고급 분석 기능 (전략검증, 경영진 요약, 시나리오 분기, 재무 시뮬레이션)
+- [x] Supabase 인증 + 관리자 대시보드
+- [x] 20개 프레임워크 기반 전략 PRD 생성
+- [x] HTML/Markdown 내보내기
+- [x] 테스트 173개 통과
 
-## DONE (이전 작업)
+## 알려진 이슈
 
-- [x] 일관성 검증 피드백 재분석 + 코드 품질 개선
+- [ ] Supabase `executive_summary` 컬럼 미존재 — 동기화 시 경고 발생 (기능에 영향 없음, DB 마이그레이션 필요)
 
-## DONE
+## 향후 개선 후보 (미확정)
 
-- [x] **피드백 재분석** — generate(id, feedback?) + generateAll(ids, feedback?) 피드백 주입
-- [x] **자동 재검증** — 재분석 후 runCheck() 자동 실행
-- [x] **코드 품질 개선** — PPTX 템플릿명 변경, 미사용 파라미터/import 제거, 접근성 개선
-- [x] 검증: typecheck + test(173개) + build 모두 통과
-
-## DONE (이전 작업)
-
-- [x] PPTX 템플릿 커스터마이징 시스템 (타입, 저장소, UI, exportPptx 리팩토링)
-- [x] Skywork 제거, 프리미엄 해제, FAW 배너, 재분석 버튼, PPTX 슬라이드 템플릿 3종
+- PDF 직접 내보내기 (현재는 HTML → Ctrl+P → PDF)
+- 소스 자료 파일 드래그앤드롭 실제 테스트 (브라우저 테스트에서 파일 업로드 미검증)
+- 관리자 대시보드에서 display_name 표시 개선 (현재 이메일 prefix 또는 입력한 이름)
+- 프레임워크 간 의존성 시각화 (DAG 그래프)
