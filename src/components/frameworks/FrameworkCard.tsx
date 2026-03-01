@@ -2,9 +2,18 @@ import React, { useState } from 'react'
 import { FRAMEWORKS } from '../../data/frameworkDefinitions'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { useAiGeneration } from '../../hooks/useAiGeneration'
-import { Sparkles, RotateCcw, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Star, ThumbsUp, X } from 'lucide-react'
+import { Sparkles, RotateCcw, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Star, ThumbsUp, X, Clock } from 'lucide-react'
 import { getRecommendationInfo } from '../../utils/recommendation'
 import FrameworkCardSkeleton from './FrameworkCardSkeleton'
+
+/** 초 단위 표시 (60초 미만: "23초", 이상: "1분 30초") */
+function formatDurationSec(ms: number): string {
+  const sec = Math.round(ms / 1000)
+  if (sec < 60) return `${sec}초`
+  const min = Math.floor(sec / 60)
+  const remainSec = sec % 60
+  return remainSec > 0 ? `${min}분 ${remainSec}초` : `${min}분`
+}
 
 const LEVEL_BADGE = {
   essential: { icon: Star, className: 'text-red-500 bg-red-50 dark:bg-red-900/30', label: '필수' },
@@ -20,7 +29,7 @@ interface FrameworkCardProps {
 export default function FrameworkCard({ frameworkId, children }: FrameworkCardProps) {
   const fw = FRAMEWORKS[frameworkId]
   const { state, clearFramework } = useStrategy()
-  const { generate, cancel } = useAiGeneration()
+  const { generate, cancel, elapsedMs, lastDurations, generatingSet } = useAiGeneration()
   const fState = state?.frameworks[frameworkId]
   const [collapsed, setCollapsed] = useState(false)
 
@@ -65,6 +74,20 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
                 <badge.icon className="w-3 h-3" />
                 {badge.label}
                 {score != null && score < 100 && <span className="ml-0.5">{score}%</span>}
+              </span>
+            )}
+            {/* 생성 중: 경과 시간 */}
+            {status === 'generating' && generatingSet.has(frameworkId) && elapsedMs >= 1000 && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-primary-500 bg-primary-50 dark:bg-primary-900/30 shrink-0 tabular-nums">
+                <Clock className="w-3 h-3" />
+                {formatDurationSec(elapsedMs)}
+              </span>
+            )}
+            {/* 완료: 소요 시간 */}
+            {status === 'completed' && lastDurations.get(frameworkId) != null && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/30 shrink-0 tabular-nums">
+                <Clock className="w-3 h-3" />
+                {formatDurationSec(lastDurations.get(frameworkId)!)}
               </span>
             )}
           </div>

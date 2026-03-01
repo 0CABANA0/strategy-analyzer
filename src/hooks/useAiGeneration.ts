@@ -1,4 +1,4 @@
-import { useCallback, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useStrategy } from './useStrategyDocument'
 import { useSettings } from './useSettings'
 import { useAuth } from './useAuth'
@@ -8,6 +8,7 @@ import { buildSourceContext } from '../services/prompts/common'
 import { sampleData } from '../data/sampleData'
 import { withRetry } from '../utils/retry'
 import { getUserFriendlyMessage } from '../utils/errors'
+import { recordMetric } from '../utils/generationMetrics'
 import type { FrameworkData, UserContent, ContentBlock } from '../types'
 
 interface UseAiGenerationReturn {
@@ -17,6 +18,10 @@ interface UseAiGenerationReturn {
   isGeneratingAny: boolean
   currentGenerating: string | null
   generatingSet: ReadonlySet<string>
+  /** 현재 생성의 경과 시간 (ms) */
+  elapsedMs: number
+  /** 최근 완료된 프레임워크별 소요 시간 (세션 한정) */
+  lastDurations: ReadonlyMap<string, number>
 }
 
 export function useAiGeneration(): UseAiGenerationReturn {
@@ -35,6 +40,11 @@ export function useAiGeneration(): UseAiGenerationReturn {
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0)
   const abortRef = useRef<AbortController | null>(null)
 
+  // 타이머: 생성 시작 시점 + 경과 시간 + 완료 소요 시간
+  const startTimeRef = useRef<number>(0)
+  const [elapsedMs, setElapsedMs] = useState(0)
+  const lastDurationsRef = useRef(new Map<string, number>())
+
   const addGenerating = (id: string) => {
     generatingRef.current.add(id)
     forceUpdate()
@@ -48,10 +58,13 @@ export function useAiGeneration(): UseAiGenerationReturn {
   const generate = useCallback(async (frameworkId: string, feedback?: string) => {
     if (!state?.businessItem) return
 
+    const genStartTime = Date.now()
+
     // API 키가 없으면 샘플 데이터 사용
     if (!hasApiKey()) {
       setFrameworkGenerating(frameworkId)
       addGenerating(frameworkId)
+      startTimeRef.current = genStartTime
 
       await new Promise<void>((r) => setTimeout(r, 500))
       const sample = sampleData[frameworkId as keyof typeof sampleData]
@@ -60,12 +73,15 @@ export function useAiGeneration(): UseAiGenerationReturn {
       } else {
         setFrameworkError(frameworkId, '이 프레임워크의 샘플 데이터가 없습니다. API 키를 설정해 주세요.')
       }
+      const durationMs = Date.now() - genStartTime
+      lastDurationsRef.current.set(frameworkId, durationMs)
       removeGenerating(frameworkId)
       return
     }
 
     setFrameworkGenerating(frameworkId)
     addGenerating(frameworkId)
+    startTimeRef.current = genStartTime
 
     try {
       const template = promptTemplates[frameworkId as keyof typeof promptTemplates]
@@ -119,6 +135,12 @@ export function useAiGeneration(): UseAiGenerationReturn {
       )
       const data = parseJsonResponse(responseText)
       setFrameworkData(frameworkId, data as unknown as FrameworkData)
+
+      // 성공 시 메트릭 기록
+      const durationMs = Date.now() - genStartTime
+      lastDurationsRef.current.set(frameworkId, durationMs)
+      recordMetric({ frameworkId, model: settings.model, durationMs })
+
       logActivity('ai_generate', { framework: frameworkId, model: settings.model, feedback: !!feedback })
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -147,5 +169,24 @@ export function useAiGeneration(): UseAiGenerationReturn {
   const isGeneratingAny = generatingSet.size > 0
   const currentGenerating = generatingSet.size > 0 ? [...generatingSet][0] : null
 
-  return { generate, generateAll, cancel, isGeneratingAny, currentGenerating, generatingSet }
+  // 1초 간격으로 elapsedMs 갱신 (생성 중일 때만)
+  useEffect(() => {
+    if (!isGeneratingAny) {
+      setElapsedMs(0)
+      return
+    }
+    const timer = setInterval(() => {
+      if (startTimeRef.current > 0) {
+        setElapsedMs(Date.now() - startTimeRef.current)
+      }
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [isGeneratingAny])
+
+  return {
+    generate, generateAll, cancel,
+    isGeneratingAny, currentGenerating, generatingSet,
+    elapsedMs,
+    lastDurations: lastDurationsRef.current,
+  }
 }
