@@ -1,4 +1,3 @@
-import { screen } from '@testing-library/react'
 import { renderWithProviders } from '../../test/helpers'
 
 vi.mock('../../lib/supabase', () => ({

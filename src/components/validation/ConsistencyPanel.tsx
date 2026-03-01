@@ -53,7 +53,7 @@ const TYPE_LABELS: Record<ConsistencyIssue['type'], string> = {
 
 function IssueCard({ issue, onReanalyze, isReanalyzing }: {
   issue: ConsistencyIssue
-  onReanalyze: (frameworkIds: string[]) => void
+  onReanalyze: (frameworkIds: string[], feedback: string) => void
   isReanalyzing: boolean
 }) {
   const style = SEVERITY_STYLES[issue.severity]
@@ -77,7 +77,7 @@ function IssueCard({ issue, onReanalyze, isReanalyzing }: {
             💡 {issue.suggestion}
           </p>
           <button
-            onClick={() => onReanalyze(issue.frameworks)}
+            onClick={() => onReanalyze(issue.frameworks, `문제: ${issue.description}\n제안: ${issue.suggestion}`)}
             disabled={isReanalyzing}
             className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md text-indigo-700 dark:text-indigo-300 bg-white/70 dark:bg-gray-700/50 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 disabled:opacity-50 transition-colors"
           >
@@ -99,8 +99,9 @@ export default function ConsistencyPanel() {
   const { generateAll, isGeneratingAny } = useAiGeneration()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
-  const handleReanalyze = (frameworkIds: string[]) => {
-    generateAll(frameworkIds)
+  const handleReanalyze = async (frameworkIds: string[], feedback: string) => {
+    await generateAll(frameworkIds, feedback)
+    await runCheck()
   }
 
   if (!result && !isLoading && !error) {

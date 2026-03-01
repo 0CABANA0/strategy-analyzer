@@ -30,10 +30,10 @@ export interface PptxTemplate {
   }
 }
 
-/** 기본 템플릿: Hyosung Purple (A4) — Template-A4-2026.pptx 테마 기반 */
+/** 기본 템플릿: Purple (A4) — Template-A4-2026.pptx 테마 기반 */
 export const DEFAULT_TEMPLATE: PptxTemplate = {
-  id: 'hyosung-purple-a4',
-  name: 'Hyosung Purple (A4)',
+  id: 'purple-a4',
+  name: 'Purple (A4)',
   isDefault: true,
   createdAt: '2026-01-01T00:00:00.000Z',
   colors: {

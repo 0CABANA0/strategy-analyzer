@@ -95,10 +95,11 @@ export default function TemplateSelector({ selectedId, onSelect }: TemplateSelec
         <div className="absolute right-0 top-full mt-1 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1">
           {/* 템플릿 목록 */}
           {templates.map((t) => (
-            <div
+            <button
+              type="button"
               key={t.id}
               onClick={() => handleSelect(t)}
-              className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${
+              className={`flex items-center gap-2 px-3 py-2 w-full text-left cursor-pointer transition-colors ${
                 t.id === selectedId
                   ? 'bg-indigo-50 dark:bg-indigo-900/20'
                   : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -145,7 +146,7 @@ export default function TemplateSelector({ selectedId, onSelect }: TemplateSelec
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               )}
-            </div>
+            </button>
           ))}
 
           {/* 구분선 + 업로드 */}

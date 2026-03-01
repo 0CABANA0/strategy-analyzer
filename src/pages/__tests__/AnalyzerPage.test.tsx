@@ -1,4 +1,3 @@
-import { screen } from '@testing-library/react'
 import { renderWithProviders } from '../../test/helpers'
 import AnalyzerPage from '../AnalyzerPage'
 

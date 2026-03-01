@@ -10,8 +10,8 @@ import { getUserFriendlyMessage } from '../utils/errors'
 import type { FrameworkData } from '../types'
 
 interface UseAiGenerationReturn {
-  generate: (frameworkId: string) => Promise<void>
-  generateAll: (frameworkIds: string[]) => Promise<void>
+  generate: (frameworkId: string, feedback?: string) => Promise<void>
+  generateAll: (frameworkIds: string[], feedback?: string) => Promise<void>
   cancel: () => void
   isGeneratingAny: boolean
   currentGenerating: string | null
@@ -44,7 +44,7 @@ export function useAiGeneration(): UseAiGenerationReturn {
     forceUpdate()
   }
 
-  const generate = useCallback(async (frameworkId: string) => {
+  const generate = useCallback(async (frameworkId: string, feedback?: string) => {
     if (!state?.businessItem) return
 
     // API 키가 없으면 샘플 데이터 사용
@@ -71,10 +71,15 @@ export function useAiGeneration(): UseAiGenerationReturn {
       if (!template) throw new Error(`프롬프트 템플릿이 없습니다: ${frameworkId}`)
 
       const context = getFrameworkContext(frameworkId)
-      const { system, user } = template({
+      let { system, user } = template({
         businessItem: state.businessItem,
         context,
       })
+
+      // 일관성 검증 피드백이 있으면 프롬프트에 개선 요청 추가
+      if (feedback) {
+        user += `\n\n[전략 일관성 검증 피드백 — 반드시 반영]\n${feedback}\n위 피드백을 반영하여 기존 분석을 개선해 주세요. 다른 프레임워크와의 일관성을 확보하면서 해당 이슈를 해결하세요.`
+      }
 
       const controller = new AbortController()
       abortRef.current = controller
@@ -92,7 +97,7 @@ export function useAiGeneration(): UseAiGenerationReturn {
       )
       const data = parseJsonResponse(responseText)
       setFrameworkData(frameworkId, data as unknown as FrameworkData)
-      logActivity('ai_generate', { framework: frameworkId, model: settings.model })
+      logActivity('ai_generate', { framework: frameworkId, model: settings.model, feedback: !!feedback })
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') {
         setFrameworkError(frameworkId, 'AI 생성이 취소되었습니다.')
@@ -105,9 +110,9 @@ export function useAiGeneration(): UseAiGenerationReturn {
     }
   }, [state, settings, apiKey, hasApiKey, setFrameworkGenerating, setFrameworkData, setFrameworkError, getFrameworkContext, logActivity])
 
-  const generateAll = useCallback(async (frameworkIds: string[]) => {
+  const generateAll = useCallback(async (frameworkIds: string[], feedback?: string) => {
     for (const id of frameworkIds) {
-      await generate(id)
+      await generate(id, feedback)
     }
   }, [generate])
 

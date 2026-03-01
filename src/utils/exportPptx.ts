@@ -466,7 +466,7 @@ function addScenarioSlides(pptx: PptxGenJS, sr: ScenarioResult): void {
   }
 
   for (const scenario of sr.scenarios) {
-    addScenarioDetailSlide(pptx, scenario, scenario.type === sr.recommendation, typeLabels)
+    addScenarioDetailSlide(pptx, scenario, scenario.type === sr.recommendation)
   }
 
   // 비교 요약 슬라이드
@@ -517,7 +517,6 @@ function addScenarioDetailSlide(
   pptx: PptxGenJS,
   s: ScenarioStrategy,
   isRecommended: boolean,
-  typeLabels: Record<string, string>,
 ): void {
   const slide = pptx.addSlide()
   const title = `${s.label}${isRecommended ? ' ⭐ AI 추천' : ''}`
