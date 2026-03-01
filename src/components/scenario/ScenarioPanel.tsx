@@ -1,5 +1,6 @@
 /** 시나리오 분기 패널 */
 import { useScenario } from '../../hooks/useScenario'
+import { useToast } from '../../hooks/useToast'
 import { ChevronDown, ChevronUp, Loader2, Star } from 'lucide-react'
 import { useState } from 'react'
 import type { ScenarioStrategy, ScenarioType } from '../../types'
@@ -114,8 +115,14 @@ function ScenarioDetail({ scenario }: { scenario: ScenarioStrategy }) {
 
 export default function ScenarioPanel() {
   const { result, isLoading, error, generate } = useScenario()
+  const toast = useToast()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [activeTab, setActiveTab] = useState<ScenarioType>('aggressive')
+
+  const handleGenerate = async () => {
+    await generate()
+    toast.success('시나리오 개선 완료 — 미리보기에 반영되었습니다.')
+  }
 
   if (!result && !isLoading && !error) {
     return (
@@ -128,7 +135,7 @@ export default function ScenarioPanel() {
             </p>
           </div>
           <button
-            onClick={generate}
+            onClick={handleGenerate}
             className="px-4 py-2 text-sm bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
           >
             시나리오 생성
@@ -150,11 +157,11 @@ export default function ScenarioPanel() {
         <h3 className="font-semibold text-gray-900 dark:text-gray-100">시나리오 분석</h3>
         <div className="flex items-center gap-2">
           <button
-            onClick={(e) => { e.stopPropagation(); generate() }}
+            onClick={(e) => { e.stopPropagation(); handleGenerate() }}
             disabled={isLoading}
             className="text-xs text-violet-600 dark:text-violet-400 hover:underline disabled:opacity-50"
           >
-            재생성
+            개선
           </button>
           {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
         </div>

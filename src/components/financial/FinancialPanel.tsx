@@ -1,5 +1,6 @@
 /** 재무 시뮬레이션 패널 */
 import { useFinancialSimulation } from '../../hooks/useFinancialSimulation'
+import { useToast } from '../../hooks/useToast'
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import type { RevenueProjection } from '../../types'
@@ -93,7 +94,13 @@ function MarketSizingChart({ tam, sam, som }: {
 
 export default function FinancialPanel() {
   const { result, isLoading, error, generate } = useFinancialSimulation()
+  const toast = useToast()
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const handleGenerate = async () => {
+    await generate()
+    toast.success('재무 시뮬레이션 개선 완료 — 미리보기에 반영되었습니다.')
+  }
 
   if (!result && !isLoading && !error) {
     return (
@@ -106,7 +113,7 @@ export default function FinancialPanel() {
             </p>
           </div>
           <button
-            onClick={generate}
+            onClick={handleGenerate}
             className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
           >
             시뮬레이션 실행
@@ -126,11 +133,11 @@ export default function FinancialPanel() {
         <h3 className="font-semibold text-gray-900 dark:text-gray-100">재무 시뮬레이션</h3>
         <div className="flex items-center gap-2">
           <button
-            onClick={(e) => { e.stopPropagation(); generate() }}
+            onClick={(e) => { e.stopPropagation(); handleGenerate() }}
             disabled={isLoading}
             className="text-xs text-amber-600 dark:text-amber-400 hover:underline disabled:opacity-50"
           >
-            재실행
+            개선
           </button>
           {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
         </div>

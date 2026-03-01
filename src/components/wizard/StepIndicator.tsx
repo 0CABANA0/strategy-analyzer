@@ -1,8 +1,6 @@
 import { SECTIONS } from '../../data/sectionDefinitions'
 import { useWizard } from '../../hooks/useWizard'
 import { useStrategy } from '../../hooks/useStrategyDocument'
-import { Check } from 'lucide-react'
-
 export default function StepIndicator() {
   const { currentStep, goToStep } = useWizard()
   const { getStepProgress } = useStrategy()
@@ -29,13 +27,9 @@ export default function StepIndicator() {
                       : 'bg-gray-100 text-gray-400 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700'
               }`}
             >
-              {isComplete ? (
-                <Check className="w-3.5 h-3.5" />
-              ) : (
-                <span className="w-4 h-4 flex items-center justify-center rounded-full bg-white/20 text-[10px]">
-                  {section.number}
-                </span>
-              )}
+              <span className="w-4 h-4 flex items-center justify-center rounded-full bg-white/20 text-[10px]">
+                {section.number}
+              </span>
               <span className="hidden sm:inline">{section.title}</span>
             </button>
             {idx < SECTIONS.length - 1 && (

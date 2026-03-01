@@ -87,7 +87,7 @@ function IssueCard({ issue, onReanalyze, isReanalyzing }: {
             ) : (
               <RefreshCw className="w-3 h-3" />
             )}
-            재분석
+            개선
           </button>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function ConsistencyPanel() {
       .join(', ')
     await generateAll(frameworkIds, feedback)
     await runCheck()
-    toast.success(`재분석 완료: ${names} — 보고서가 업데이트되었습니다.`)
+    toast.success(`개선 완료: ${names} — 미리보기에 반영되었습니다.`)
   }
 
   if (!result && !isLoading && !error) {

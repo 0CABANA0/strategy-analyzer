@@ -1,5 +1,6 @@
 /** 경영진 요약 패널 */
 import { useExecutiveSummary } from '../../hooks/useExecutiveSummary'
+import { useToast } from '../../hooks/useToast'
 import { ChevronDown, ChevronUp, Loader2, TrendingUp, AlertTriangle, Target } from 'lucide-react'
 import { useState } from 'react'
 import type { ExecutiveSummary } from '../../types'
@@ -24,7 +25,13 @@ const REC_STYLES: Record<ExecutiveSummary['recommendation'], { label: string; bg
 
 export default function ExecutiveSummaryPanel() {
   const { result, isLoading, error, generate } = useExecutiveSummary()
+  const toast = useToast()
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const handleGenerate = async () => {
+    await generate()
+    toast.success('경영진 요약 개선 완료 — 미리보기에 반영되었습니다.')
+  }
 
   if (!result && !isLoading && !error) {
     return (
@@ -37,7 +44,7 @@ export default function ExecutiveSummaryPanel() {
             </p>
           </div>
           <button
-            onClick={generate}
+            onClick={handleGenerate}
             className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
           >
             요약 생성
@@ -64,11 +71,11 @@ export default function ExecutiveSummaryPanel() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={(e) => { e.stopPropagation(); generate() }}
+            onClick={(e) => { e.stopPropagation(); handleGenerate() }}
             disabled={isLoading}
             className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline disabled:opacity-50"
           >
-            재생성
+            개선
           </button>
           {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
         </div>
