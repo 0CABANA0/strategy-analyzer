@@ -133,7 +133,7 @@ function FrameworkPreview({ id, data }: FrameworkPreviewProps) {
   if (!fw || !data) return null
 
   return (
-    <div className="mb-6 break-inside-avoid">
+    <div id={`framework-${id}`} className="mb-6 break-inside-avoid">
       <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">{fw.name}</h3>
       <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">{fw.fullName} — {fw.description}</p>
 
