@@ -6,7 +6,7 @@ export const genericStrategy: PromptTemplate = ({ businessItem, context }: Promp
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-Porter의 본원적 전략을 선택하고 실행 방안을 제시하세요.
+Porter의 본원적 전략을 선택하고 실행 방안을 제시하세요. SWOT의 선택 전략(selectedStrategies)과 5Forces 결과를 근거로 전략을 선택하세요.
 
 JSON 형식:
 {
@@ -21,7 +21,7 @@ export const stp: PromptTemplate = ({ businessItem, context }: PromptContext): P
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-STP (Segmentation, Targeting, Positioning) 분석을 수행하세요.
+STP (Segmentation, Targeting, Positioning) 분석을 수행하세요. 고객분석의 세그먼트/페르소나, 시장분석의 TAM/SAM/SOM과 일관되게 수행하세요.
 
 JSON 형식:
 {
@@ -36,7 +36,7 @@ export const errc: PromptTemplate = ({ businessItem, context }: PromptContext): 
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-ERRC (Eliminate-Reduce-Raise-Create) 그리드 분석을 수행하세요.
+ERRC (Eliminate-Reduce-Raise-Create) 그리드 분석을 수행하세요. 전략캔버스의 경쟁요인 분석을 기반으로 도출하세요.
 
 JSON 형식:
 {
@@ -52,7 +52,7 @@ export const fourP: PromptTemplate = ({ businessItem, context }: PromptContext):
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-마케팅 믹스 4P 전략을 수립하세요.
+마케팅 믹스 4P 전략을 수립하세요. STP의 타겟/포지셔닝, 본원적 전략의 방향과 일관된 4P를 설계하세요.
 
 JSON 형식:
 {
@@ -68,7 +68,7 @@ export const wbs: PromptTemplate = ({ businessItem, context }: PromptContext): P
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-WBS (Work Breakdown Structure) 추진 일정을 수립하세요.
+WBS (Work Breakdown Structure) 추진 일정을 수립하세요. 4P, STP, 본원적 전략의 실행방안을 구체적 일정으로 분해하세요.
 
 JSON 형식:
 {

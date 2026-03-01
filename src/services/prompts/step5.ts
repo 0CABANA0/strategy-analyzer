@@ -6,7 +6,7 @@ export const kpi: PromptTemplate = ({ businessItem, context }: PromptContext): P
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-기대효과와 KPI 체계(Input→Throughput→Output→Outcome)를 설계하세요.
+기대효과와 KPI 체계(Input→Throughput→Output→Outcome)를 설계하세요. 시장분석의 TAM/SAM/SOM 수치, 4P 전략, WBS 마일스톤과 정합되는 현실적 KPI를 설계하세요.
 
 JSON 형식:
 {
