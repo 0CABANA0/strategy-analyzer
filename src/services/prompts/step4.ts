@@ -6,7 +6,7 @@ export const genericStrategy: PromptTemplate = ({ businessItem, context }: Promp
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-Porter의 본원적 전략을 선택하고 실행 방안을 제시하세요. SWOT의 선택 전략(selectedStrategies)과 5Forces 결과를 근거로 전략을 선택하세요.
+Porter's Generic Strategy(포터의 본원적 전략: 원가우위 Cost Leadership / 차별화 Differentiation / 집중 Focus)를 선택하고 실행 방안을 제시하세요. 이 프레임워크는 기업이 산업 내에서 어떤 방식으로 경쟁우위를 확보할지 근본 방향을 설정하는 데 강점이 있습니다. SWOT의 선택 전략(selectedStrategies)과 5Forces 결과를 근거로 전략을 선택하세요.
 
 JSON 형식:
 {
@@ -21,7 +21,7 @@ export const stp: PromptTemplate = ({ businessItem, context }: PromptContext): P
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-STP (Segmentation, Targeting, Positioning) 분석을 수행하세요. 고객분석의 세그먼트/페르소나, 시장분석의 TAM/SAM/SOM과 일관되게 수행하세요.
+STP(Segmentation 시장세분화, Targeting 타겟팅, Positioning 포지셔닝) 분석을 수행하세요. 이 프레임워크는 시장을 세분화하고 최적 타겟을 선정하여 고객 마음속 포지셔닝 전략을 수립하는 데 강점이 있습니다. 고객분석의 세그먼트/페르소나, 시장분석의 TAM/SAM/SOM과 일관되게 수행하세요.
 
 JSON 형식:
 {
@@ -36,7 +36,7 @@ export const errc: PromptTemplate = ({ businessItem, context }: PromptContext): 
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-ERRC (Eliminate-Reduce-Raise-Create) 그리드 분석을 수행하세요. 전략캔버스의 경쟁요인 분석을 기반으로 도출하세요.
+ERRC(Eliminate 제거, Reduce 감소, Raise 증가, Create 창조) 그리드 분석을 수행하세요. 이 프레임워크는 경쟁 요소를 4가지 행동으로 재설계하여 비용 절감과 가치 혁신을 동시에 달성하는 데 강점이 있습니다. 전략캔버스의 경쟁요인 분석을 기반으로 도출하세요.
 
 JSON 형식:
 {
@@ -52,7 +52,7 @@ export const fourP: PromptTemplate = ({ businessItem, context }: PromptContext):
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-마케팅 믹스 4P 전략을 수립하세요. STP의 타겟/포지셔닝, 본원적 전략의 방향과 일관된 4P를 설계하세요.
+마케팅 믹스 4P(Product 제품, Price 가격, Place 유통, Promotion 판촉) 전략을 수립하세요. 이 프레임워크는 마케팅 전략을 4가지 실행 요소로 구체화하여 시장 진입 계획을 수립하는 데 강점이 있습니다. STP의 타겟/포지셔닝, 본원적 전략의 방향과 일관된 4P를 설계하세요.
 
 JSON 형식:
 {
@@ -68,7 +68,7 @@ export const wbs: PromptTemplate = ({ businessItem, context }: PromptContext): P
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-WBS (Work Breakdown Structure) 추진 일정을 수립하세요. 4P, STP, 본원적 전략의 실행방안을 구체적 일정으로 분해하세요.
+WBS(Work Breakdown Structure, 작업분해구조) 추진 일정을 수립하세요. 이 프레임워크는 전략 실행을 단계별 작업으로 분해하여 일정·산출물·담당을 명확히 하는 데 강점이 있습니다. 4P, STP, 본원적 전략의 실행방안을 구체적 일정으로 분해하세요.
 
 JSON 형식:
 {

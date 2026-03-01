@@ -6,7 +6,7 @@ export const swot: PromptTemplate = ({ businessItem, context }: PromptContext): 
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-SWOT 크로스분석을 수행하세요. 이전 환경분석 결과를 반드시 종합 반영하세요.
+SWOT(Strengths 강점, Weaknesses 약점, Opportunities 기회, Threats 위협) 크로스분석을 수행하세요. 이 프레임워크는 내부 역량(강점/약점)과 외부 환경(기회/위협)을 교차 분석하여 실행 가능한 전략 대안을 도출하는 데 강점이 있습니다. 이전 환경분석 결과를 반드시 종합 반영하세요.
 - 강점/약점: 3C 자사역량, 가치사슬, 7S, VRIO 결과에서 도출
 - 기회/위협: PEST, 5Forces, ILC, 시장분석 결과에서 도출
 이전 분석과 모순되는 항목이 없어야 합니다.

@@ -6,7 +6,7 @@ export const faw: PromptTemplate = ({ businessItem, context }: PromptContext): P
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-FAW(Fact-Assumption-What if) 분석을 수행하세요.
+FAW(Fact-Assumption-What if, 사실-가정-만약) 분석을 수행하세요. 이 프레임워크는 사실과 가정을 명확히 구분하여 의사결정의 불확실성을 체계적으로 관리하는 데 강점이 있습니다.
 
 JSON 형식:
 {
@@ -21,7 +21,7 @@ export const threeC: PromptTemplate = ({ businessItem, context }: PromptContext)
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-3C 분석 (Company, Customer, Competitor)을 수행하세요.
+3C 분석 (Company 자사, Customer 고객, Competitor 경쟁사)을 수행하세요. 이 프레임워크는 기업·고객·경쟁사 3축 관점에서 시장 내 자사 위치를 입체적으로 파악하는 데 강점이 있습니다.
 
 JSON 형식:
 {
@@ -36,7 +36,7 @@ export const ansoff: PromptTemplate = ({ businessItem, context }: PromptContext)
   user: `전략분석 아이템: "${businessItem}"
 ${buildContext(context)}
 
-Ansoff 성장 매트릭스 분석을 수행하세요.
+Ansoff Growth Matrix(앤소프 성장 매트릭스) 분석을 수행하세요. 이 프레임워크는 시장(기존/신규)과 제품(기존/신규)의 조합으로 최적 성장 방향을 설정하는 데 강점이 있습니다.
 
 JSON 형식:
 {
