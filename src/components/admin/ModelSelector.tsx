@@ -2,19 +2,15 @@ import { useState } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useToast } from '../../hooks/useToast'
 import { MODELS, MODEL_CATEGORIES } from '../../data/modelDefinitions'
-import { Bot, Loader2, Save, Key, Eye, EyeOff } from 'lucide-react'
+import { Bot, Loader2, Save } from 'lucide-react'
 
 export default function ModelSelector() {
-  const { settings, updateGlobalModel, isModelLoading, skyworkApiKey, updateSkyworkApiKey } = useSettings()
+  const { settings, updateGlobalModel, isModelLoading } = useSettings()
   const toast = useToast()
   const [selected, setSelected] = useState(settings.model)
   const [isSaving, setIsSaving] = useState(false)
-  const [skyworkKey, setSkyworkKey] = useState(skyworkApiKey)
-  const [isSavingSkywork, setIsSavingSkywork] = useState(false)
-  const [showSkyworkKey, setShowSkyworkKey] = useState(false)
 
   const isDirty = selected !== settings.model
-  const isSkyworkDirty = skyworkKey !== skyworkApiKey
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -24,17 +20,6 @@ export default function ModelSelector() {
       toast.error(`모델 변경 실패: ${error}`)
     } else {
       toast.success('전역 AI 모델이 변경되었습니다.')
-    }
-  }
-
-  const handleSaveSkywork = async () => {
-    setIsSavingSkywork(true)
-    const { error } = await updateSkyworkApiKey(skyworkKey.trim())
-    setIsSavingSkywork(false)
-    if (error) {
-      toast.error(`Skywork API 키 저장 실패: ${error}`)
-    } else {
-      toast.success('Skywork API 키가 저장되었습니다.')
     }
   }
 
@@ -121,46 +106,6 @@ export default function ModelSelector() {
 
         <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2">
           선택한 모델은 모든 사용자에게 즉시 적용됩니다.
-        </p>
-      </div>
-
-      {/* Skywork API 키 관리 */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-            <Key className="w-4 h-4" />
-            Skywork API 키 (재무 시뮬레이션용)
-          </h3>
-          {isSkyworkDirty && (
-            <button
-              onClick={handleSaveSkywork}
-              disabled={isSavingSkywork}
-              className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 transition-colors"
-            >
-              {isSavingSkywork ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-              저장
-            </button>
-          )}
-        </div>
-        <div className="relative">
-          <input
-            type={showSkyworkKey ? 'text' : 'password'}
-            value={skyworkKey}
-            onChange={(e) => setSkyworkKey(e.target.value)}
-            placeholder="sk-... (Skywork API 키를 입력하세요)"
-            className="w-full pr-10 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-amber-500"
-          />
-          <button
-            type="button"
-            onClick={() => setShowSkyworkKey(!showSkyworkKey)}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            {showSkyworkKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
-        </div>
-        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5">
-          Skywork API 키를 설정하면 프리미엄 사용자의 재무 시뮬레이션에 Skywork AI가 사용됩니다.
-          미설정 시 OpenRouter를 통해 실행됩니다.
         </p>
       </div>
     </section>

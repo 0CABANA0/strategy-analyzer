@@ -1,11 +1,11 @@
 /**
- * PPTX 슬라이드 내보내기 (프리미엄 전용)
+ * PPTX 슬라이드 내보내기
  * pptxgenjs를 사용하여 브라우저에서 직접 .pptx 생성
  * 동적 import로 번들 크기 최적화 (사용 시에만 로드)
  */
 import type PptxGenJS from 'pptxgenjs'
 import type { StrategyDocument } from '../types/document'
-import type { FrameworkDefinition, FieldDef } from '../types/framework'
+import type { FrameworkDefinition } from '../types/framework'
 import type { ExecutiveSummary } from '../types/validation'
 import type { ScenarioResult, ScenarioStrategy } from '../types/scenario'
 import type { FinancialResult } from '../types/financial'
@@ -220,7 +220,153 @@ function addSlideHeader(slide: PptxGenJS.Slide, section: string, title: string):
   })
 }
 
-// ── 프레임워크 필드 렌더링 ──
+// ── 3종 슬라이드 템플릿 ──
+
+interface BulletGroup {
+  label: string
+  items: string[]
+}
+
+interface KeyValuePair {
+  key: string
+  value: string
+}
+
+interface TableContent {
+  label: string
+  columns: string[]
+  rows: unknown[][]
+}
+
+/** 템플릿 1: 불릿 리스트 — 라벨+불릿 그룹을 자동 페이징 */
+function templateBullets(
+  pptx: PptxGenJS,
+  sectionTitle: string,
+  fwTitle: string,
+  groups: BulletGroup[],
+): void {
+  const MAX_ITEMS = 14
+  let itemCount = 0
+  let slide = pptx.addSlide()
+  addSlideHeader(slide, sectionTitle, fwTitle)
+  let y = 1.1
+  let page = 0
+
+  for (const group of groups) {
+    if (!group.items.length) continue
+
+    // 페이지 넘침 시 새 슬라이드
+    const needed = group.items.length + 1
+    if (itemCount > 0 && itemCount + needed > MAX_ITEMS) {
+      page++
+      slide = pptx.addSlide()
+      addSlideHeader(slide, sectionTitle, `${fwTitle} (${page + 1})`)
+      y = 1.1
+      itemCount = 0
+    }
+
+    // 그룹 라벨
+    slide.addText(group.label, {
+      x: MARGIN_X, y, w: CONTENT_W, h: 0.3,
+      fontSize: 12, fontFace: FONT, bold: true, color: COLORS.tableHeader,
+    })
+    y += 0.35
+    itemCount++
+
+    // 불릿 아이템
+    const bullets = group.items.map((item) => ({
+      text: item,
+      options: { fontSize: 11, fontFace: FONT, color: COLORS.text, bullet: { type: 'bullet' as const } },
+    }))
+    const listH = Math.min(group.items.length * 0.24 + 0.05, 3.2)
+    slide.addText(bullets, {
+      x: MARGIN_X + 0.3, y, w: CONTENT_W - 0.3, h: listH,
+      valign: 'top', paraSpaceAfter: 3,
+    })
+    y += listH + 0.15
+    itemCount += group.items.length
+  }
+}
+
+/** 템플릿 2: 키-값 테이블 — 2열 스타일 테이블로 자동 페이징 */
+function templateKeyValue(
+  pptx: PptxGenJS,
+  sectionTitle: string,
+  fwTitle: string,
+  pairs: KeyValuePair[],
+): void {
+  const MAX_PAIRS = 7
+
+  for (let i = 0; i < pairs.length; i += MAX_PAIRS) {
+    const chunk = pairs.slice(i, i + MAX_PAIRS)
+    const slide = pptx.addSlide()
+    const title = i === 0 ? fwTitle : `${fwTitle} (${Math.floor(i / MAX_PAIRS) + 1})`
+    addSlideHeader(slide, sectionTitle, title)
+
+    const rows: PptxGenJS.TableRow[] = chunk.map((pair, idx) => [
+      {
+        text: pair.key,
+        options: {
+          bold: true, fontSize: 11, fontFace: FONT, color: COLORS.tableHeader,
+          fill: { color: idx % 2 ? COLORS.tableStripe : COLORS.white },
+          valign: 'top' as const,
+        },
+      },
+      {
+        text: pair.value,
+        options: {
+          fontSize: 11, fontFace: FONT, color: COLORS.text,
+          fill: { color: idx % 2 ? COLORS.tableStripe : COLORS.white },
+          valign: 'top' as const,
+        },
+      },
+    ])
+
+    slide.addTable(rows, {
+      x: MARGIN_X, y: 1.1, w: CONTENT_W,
+      colW: [2.5, 6.3],
+      border: { type: 'solid', pt: 0.5, color: COLORS.border },
+      rowH: chunk.map((pair) => Math.max(0.45, Math.ceil(pair.value.length / 55) * 0.32)),
+    })
+  }
+}
+
+/** 템플릿 3: 전폭 테이블 — autoPage로 자동 분할 */
+function templateTable(
+  pptx: PptxGenJS,
+  sectionTitle: string,
+  fwTitle: string,
+  content: TableContent,
+): void {
+  const slide = pptx.addSlide()
+  addSlideHeader(slide, sectionTitle, fwTitle)
+
+  slide.addText(content.label, {
+    x: MARGIN_X, y: 1.05, w: CONTENT_W, h: 0.3,
+    fontSize: 12, fontFace: FONT, bold: true, color: COLORS.tableHeader,
+  })
+
+  const tableRows = buildTableRows(content.columns, content.rows)
+
+  slide.addTable(tableRows, {
+    x: MARGIN_X, y: 1.4, w: CONTENT_W,
+    colW: distributeColumnWidths(content.columns.length, CONTENT_W),
+    border: { type: 'solid', pt: 0.5, color: COLORS.border },
+    autoPage: true,
+    autoPageRepeatHeader: true,
+    autoPageHeaderRows: 1,
+  })
+}
+
+/** 열 수에 따라 열 폭 자동 분배 (첫 열 넓게) */
+function distributeColumnWidths(colCount: number, totalW: number): number[] {
+  if (colCount <= 2) return Array(colCount).fill(totalW / colCount)
+  const firstW = Math.min(totalW * 0.28, 2.5)
+  const restW = (totalW - firstW) / (colCount - 1)
+  return [firstW, ...Array(colCount - 1).fill(restW)]
+}
+
+// ── 프레임워크 필드 → 템플릿 자동 분배 ──
 
 function addFrameworkSlides(
   pptx: PptxGenJS,
@@ -231,121 +377,50 @@ function addFrameworkSlides(
   const fw: FrameworkDefinition | undefined = FRAMEWORKS[frameworkId]
   if (!fw || !data) return
 
-  const slide = pptx.addSlide()
-  addSlideHeader(slide, sectionTitle, `${fw.name} (${fw.fullName})`)
+  const fwTitle = `${fw.name} (${fw.fullName})`
 
-  let y = 1.1
-  const maxY = 5.0 // 슬라이드 하단 여백
+  // 필드를 타입별로 분류
+  const kvPairs: KeyValuePair[] = []
+  const bulletGroups: BulletGroup[] = []
+  const tables: TableContent[] = []
 
   for (const [key, fieldDef] of Object.entries(fw.fields)) {
     const value = data[key]
     if (value === undefined || value === null) continue
 
-    // 슬라이드 넘침 시 새 슬라이드 생성
-    if (y > maxY) {
-      const newSlide = pptx.addSlide()
-      addSlideHeader(newSlide, sectionTitle, `${fw.name} (계속)`)
-      y = 1.1
-      addFieldToSlide(newSlide, fieldDef, value, y)
-      // 간단히 y 이동 — 다음 필드에서 넘침 체크
-      y += estimateFieldHeight(fieldDef, value)
-      continue
-    }
-
-    y = addFieldToSlide(slide, fieldDef, value, y)
-  }
-}
-
-function addFieldToSlide(
-  slide: PptxGenJS.Slide,
-  fieldDef: FieldDef,
-  value: unknown,
-  startY: number,
-): number {
-  let y = startY
-
-  if (fieldDef.type === 'text' || fieldDef.type === 'select') {
-    const strVal = String(value || '')
-    if (!strVal) return y
-    slide.addText([
-      { text: `${fieldDef.label}: `, options: { bold: true, fontSize: 11, color: COLORS.tableHeader } },
-      { text: strVal, options: { fontSize: 11, color: COLORS.text } },
-    ], {
-      x: MARGIN_X, y, w: CONTENT_W, h: 0.7,
-      fontFace: FONT, valign: 'top', shrinkText: true,
-      paraSpaceAfter: 2,
-    })
-    y += 0.55 + Math.floor(strVal.length / 80) * 0.18
-  } else if (fieldDef.type === 'list') {
-    const items = value as string[]
-    if (!items?.length) return y
-    slide.addText(fieldDef.label, {
-      x: MARGIN_X, y, w: CONTENT_W, h: 0.3,
-      fontSize: 12, fontFace: FONT, bold: true, color: COLORS.tableHeader,
-    })
-    y += 0.3
-    const bullets = items.map((item) => ({
-      text: item,
-      options: { fontSize: 11, fontFace: FONT, color: COLORS.text, bullet: { type: 'bullet' as const } },
-    }))
-    const listH = Math.min(items.length * 0.25 + 0.1, 3.5)
-    slide.addText(bullets, {
-      x: MARGIN_X + 0.2, y, w: CONTENT_W - 0.2, h: listH,
-      valign: 'top', paraSpaceAfter: 2,
-    })
-    y += listH + 0.1
-  } else if (fieldDef.type === 'table') {
-    const rows = value as unknown[]
-    if (!rows?.length) return y
-    slide.addText(fieldDef.label, {
-      x: MARGIN_X, y, w: CONTENT_W, h: 0.3,
-      fontSize: 12, fontFace: FONT, bold: true, color: COLORS.tableHeader,
-    })
-    y += 0.35
-    const tableRows = buildTableRows(fieldDef.columns, rows)
-    const colCount = fieldDef.columns.length
-    slide.addTable(tableRows, {
-      x: MARGIN_X, y, w: CONTENT_W,
-      colW: Array(colCount).fill(CONTENT_W / colCount),
-      border: { type: 'solid', pt: 0.5, color: COLORS.border },
-      autoPage: true,
-      autoPageRepeatHeader: true,
-      autoPageHeaderRows: 1,
-    })
-    y += (rows.length + 1) * 0.3 + 0.2
-  } else if (fieldDef.type === 'object') {
-    if (typeof value !== 'object' || value === null) return y
-    slide.addText(fieldDef.label, {
-      x: MARGIN_X, y, w: CONTENT_W, h: 0.3,
-      fontSize: 12, fontFace: FONT, bold: true, color: COLORS.tableHeader,
-    })
-    y += 0.3
-    const entries = Object.entries(value as Record<string, unknown>)
-    const bullets = entries.map(([subKey, subVal]) => {
-      const subLabel = fieldDef.subfields?.[subKey] || subKey
-      const subText = typeof subVal === 'object' ? JSON.stringify(subVal) : String(subVal ?? '')
-      return {
-        text: `${subLabel}: ${subText}`,
-        options: { fontSize: 11, fontFace: FONT, color: COLORS.text, bullet: { type: 'bullet' as const } },
+    if (fieldDef.type === 'text' || fieldDef.type === 'select') {
+      const strVal = String(value || '')
+      if (strVal) kvPairs.push({ key: fieldDef.label, value: strVal })
+    } else if (fieldDef.type === 'list') {
+      const items = value as string[]
+      if (items?.length) bulletGroups.push({ label: fieldDef.label, items })
+    } else if (fieldDef.type === 'table') {
+      const rows = value as unknown[][]
+      if (rows?.length) {
+        tables.push({ label: fieldDef.label, columns: (fieldDef as { columns: string[] }).columns, rows })
       }
-    })
-    const listH = Math.min(entries.length * 0.3 + 0.1, 3.5)
-    slide.addText(bullets, {
-      x: MARGIN_X + 0.2, y, w: CONTENT_W - 0.2, h: listH,
-      valign: 'top', paraSpaceAfter: 2,
-    })
-    y += listH + 0.1
+    } else if (fieldDef.type === 'object') {
+      if (typeof value === 'object' && value !== null) {
+        const subfields = (fieldDef as { subfields: Record<string, string> }).subfields ?? {}
+        for (const [subKey, subVal] of Object.entries(value as Record<string, unknown>)) {
+          const subLabel = subfields[subKey] || subKey
+          const subText = typeof subVal === 'object' ? JSON.stringify(subVal) : String(subVal ?? '')
+          kvPairs.push({ key: `${fieldDef.label} — ${subLabel}`, value: subText })
+        }
+      }
+    }
   }
 
-  return y
-}
-
-function estimateFieldHeight(fieldDef: FieldDef, value: unknown): number {
-  if (fieldDef.type === 'text' || fieldDef.type === 'select') return 0.7
-  if (fieldDef.type === 'list') return Math.min((value as string[]).length * 0.25 + 0.5, 3.5)
-  if (fieldDef.type === 'table') return ((value as unknown[]).length + 1) * 0.3 + 0.5
-  if (fieldDef.type === 'object') return Object.keys(value as object).length * 0.3 + 0.5
-  return 0.5
+  // 렌더링 순서: 키-값 → 테이블 → 불릿
+  if (kvPairs.length) {
+    templateKeyValue(pptx, sectionTitle, fwTitle, kvPairs)
+  }
+  for (const table of tables) {
+    templateTable(pptx, sectionTitle, fwTitle, table)
+  }
+  if (bulletGroups.length) {
+    templateBullets(pptx, sectionTitle, fwTitle, bulletGroups)
+  }
 }
 
 function buildTableRows(columns: string[], rows: unknown[]): PptxGenJS.TableRow[] {
@@ -639,11 +714,7 @@ function addEndSlide(pptx: PptxGenJS): void {
 
 // ── 메인 내보내기 함수 ──
 
-export async function exportPptx(state: StrategyDocument, isPremium: boolean): Promise<void> {
-  if (!isPremium) {
-    throw new Error('PPTX 내보내기는 프리미엄 기능입니다.')
-  }
-
+export async function exportPptx(state: StrategyDocument): Promise<void> {
   const { default: PptxGenJSLib } = await import('pptxgenjs')
   const pptx = new PptxGenJSLib()
   pptx.layout = 'LAYOUT_16x9'

@@ -70,8 +70,9 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
   ).length
   const isSectionGenerating = sectionGeneratingIds.length > 0
 
-  // 기획배경(Step 1)에서 추천 결과 없으면 FAW 기본 추천 배너
-  const showDefaultGuide = stepNumber === 1 && !state?.recommendation
+  // 기획배경(Step 1)에서 FAW가 아직 완료되지 않았으면 기본 추천 배너 표시
+  const fawNotCompleted = state?.frameworks['faw']?.status !== 'completed'
+  const showDefaultGuide = stepNumber === 1 && fawNotCompleted
   const defaultFramework = showDefaultGuide ? FRAMEWORKS['faw'] : null
 
   return (

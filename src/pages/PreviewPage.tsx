@@ -6,11 +6,10 @@ import ConsistencyPanel from '../components/validation/ConsistencyPanel'
 import ExecutiveSummaryPanel from '../components/executive/ExecutiveSummaryPanel'
 import ScenarioPanel from '../components/scenario/ScenarioPanel'
 import FinancialPanel from '../components/financial/FinancialPanel'
-import { ArrowLeft, FileText, Globe, ShieldCheck, Briefcase, GitBranch, Calculator, Presentation, Lock } from 'lucide-react'
+import { ArrowLeft, FileText, Globe, ShieldCheck, Briefcase, GitBranch, Calculator, Presentation } from 'lucide-react'
 import { exportHtml } from '../utils/exportHtml'
 import { exportMarkdown } from '../utils/exportMarkdown'
 import { exportPptx } from '../utils/exportPptx'
-import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
 
 type AnalysisPanel = 'validation' | 'executive' | 'scenario' | 'financial'
@@ -25,7 +24,6 @@ const PANEL_CONFIG: { key: AnalysisPanel; label: string; icon: React.ReactNode; 
 export default function PreviewPage() {
   const { state } = useStrategy()
   const navigate = useNavigate()
-  const { isPremium } = useAuth()
   const toast = useToast()
   const [activePanels, setActivePanels] = useState<Set<AnalysisPanel>>(new Set())
   const [isPptxExporting, setIsPptxExporting] = useState(false)
@@ -47,13 +45,9 @@ export default function PreviewPage() {
   const handleHtml = () => exportHtml(state)
   const handleMarkdown = () => exportMarkdown(state)
   const handlePptx = async () => {
-    if (!isPremium) {
-      toast.warning('PPTX 내보내기는 프리미엄 기능입니다.')
-      return
-    }
     setIsPptxExporting(true)
     try {
-      await exportPptx(state, isPremium)
+      await exportPptx(state)
       toast.success('PPTX 파일이 다운로드되었습니다.')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'PPTX 생성 중 오류가 발생했습니다.')
@@ -110,20 +104,14 @@ export default function PreviewPage() {
           </button>
           <button
             onClick={handlePptx}
-            disabled={!isPremium || isPptxExporting}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg transition-colors ${
-              isPremium
-                ? 'bg-orange-500 text-white hover:bg-orange-600'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-            }`}
-            title={isPremium ? 'PowerPoint 내보내기' : '프리미엄 기능'}
+            disabled={isPptxExporting}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg transition-colors bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50"
+            title="PowerPoint 내보내기"
           >
             {isPptxExporting ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : isPremium ? (
-              <Presentation className="w-4 h-4" />
             ) : (
-              <Lock className="w-4 h-4" />
+              <Presentation className="w-4 h-4" />
             )}
             PPTX
           </button>

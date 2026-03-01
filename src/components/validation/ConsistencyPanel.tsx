@@ -1,6 +1,7 @@
 /** 전략 일관성 검증 패널 */
 import { useConsistencyCheck } from '../../hooks/useConsistencyCheck'
-import { AlertTriangle, CheckCircle, ChevronDown, ChevronUp, Loader2, XCircle } from 'lucide-react'
+import { useAiGeneration } from '../../hooks/useAiGeneration'
+import { AlertTriangle, CheckCircle, ChevronDown, ChevronUp, Loader2, RefreshCw, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { FRAMEWORKS } from '../../data/frameworkDefinitions'
 import type { ConsistencyIssue } from '../../types'
@@ -50,7 +51,11 @@ const TYPE_LABELS: Record<ConsistencyIssue['type'], string> = {
   weak_link: '약한 연결',
 }
 
-function IssueCard({ issue }: { issue: ConsistencyIssue }) {
+function IssueCard({ issue, onReanalyze, isReanalyzing }: {
+  issue: ConsistencyIssue
+  onReanalyze: (frameworkIds: string[]) => void
+  isReanalyzing: boolean
+}) {
   const style = SEVERITY_STYLES[issue.severity]
   const frameworkNames = issue.frameworks
     .map((id) => FRAMEWORKS[id as keyof typeof FRAMEWORKS]?.name ?? id)
@@ -71,6 +76,18 @@ function IssueCard({ issue }: { issue: ConsistencyIssue }) {
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
             💡 {issue.suggestion}
           </p>
+          <button
+            onClick={() => onReanalyze(issue.frameworks)}
+            disabled={isReanalyzing}
+            className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md text-indigo-700 dark:text-indigo-300 bg-white/70 dark:bg-gray-700/50 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 disabled:opacity-50 transition-colors"
+          >
+            {isReanalyzing ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3 h-3" />
+            )}
+            재분석
+          </button>
         </div>
       </div>
     </div>
@@ -79,7 +96,12 @@ function IssueCard({ issue }: { issue: ConsistencyIssue }) {
 
 export default function ConsistencyPanel() {
   const { result, isLoading, error, runCheck } = useConsistencyCheck()
+  const { generateAll, isGeneratingAny } = useAiGeneration()
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const handleReanalyze = (frameworkIds: string[]) => {
+    generateAll(frameworkIds)
+  }
 
   if (!result && !isLoading && !error) {
     return (
@@ -187,7 +209,7 @@ export default function ConsistencyPanel() {
               </h4>
               <div className="space-y-2">
                 {result.issues.map((issue, i) => (
-                  <IssueCard key={i} issue={issue} />
+                  <IssueCard key={i} issue={issue} onReanalyze={handleReanalyze} isReanalyzing={isGeneratingAny} />
                 ))}
               </div>
             </div>

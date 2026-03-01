@@ -6,15 +6,10 @@ import { SettingsProvider } from '../useSettings'
 import { AuthProvider } from '../useAuth'
 import { ToastProvider } from '../useToast'
 import { callAI, parseJsonResponse } from '../../services/aiService'
-import { callSkywork } from '../../services/skyworkProvider'
 
 vi.mock('../../services/aiService', () => ({
   callAI: vi.fn(),
   parseJsonResponse: vi.fn(),
-}))
-
-vi.mock('../../services/skyworkProvider', () => ({
-  callSkywork: vi.fn(),
 }))
 
 vi.mock('../../utils/retry', () => ({
@@ -95,7 +90,6 @@ describe('useFinancialSimulation', () => {
     localStorage.clear()
     vi.clearAllMocks()
     vi.mocked(callAI).mockResolvedValue(JSON.stringify(MOCK_FINANCIAL))
-    vi.mocked(callSkywork).mockResolvedValue(JSON.stringify(MOCK_FINANCIAL))
     vi.mocked(parseJsonResponse).mockReturnValue(MOCK_FINANCIAL)
   })
 
@@ -125,12 +119,6 @@ describe('useFinancialSimulation', () => {
     }
   })
 
-  it('isPremiumRequired 상태를 반환한다', () => {
-    const { result } = renderHook(() => useFinancialSimulation(), { wrapper: Wrapper })
-    // mock에서 isPremium: true로 설정했으므로 false
-    expect(result.current.isPremiumRequired).toBe(false)
-  })
-
   it('API 키가 있으면 AI를 호출하고 재무 데이터를 저장한다', async () => {
     localStorage.setItem('strategy-analyzer:apiKey', 'sk-or-test-key')
 
@@ -149,10 +137,7 @@ describe('useFinancialSimulation', () => {
       await result.current.financial.generate()
     })
 
-    // Skywork API 키가 .env에 있으면 callSkywork, 없으면 callAI
-    const aiCalled = vi.mocked(callAI).mock.calls.length > 0
-    const skyworkCalled = vi.mocked(callSkywork).mock.calls.length > 0
-    expect(aiCalled || skyworkCalled).toBe(true)
+    expect(callAI).toHaveBeenCalled()
     expect(result.current.financial.result).toEqual(MOCK_FINANCIAL)
     expect(result.current.strategy.state.financialResult).toEqual(MOCK_FINANCIAL)
     expect(result.current.financial.result?.revenueProjections).toHaveLength(5)
@@ -163,7 +148,6 @@ describe('useFinancialSimulation', () => {
   it('AI 호출 실패 시 에러를 설정한다', async () => {
     localStorage.setItem('strategy-analyzer:apiKey', 'sk-or-test-key')
     vi.mocked(callAI).mockRejectedValueOnce(new Error('Rate limit'))
-    vi.mocked(callSkywork).mockRejectedValueOnce(new Error('Rate limit'))
 
     const { result } = renderHook(
       () => {

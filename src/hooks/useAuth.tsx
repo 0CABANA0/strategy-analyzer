@@ -143,7 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user])
 
   const isAdmin = user?.role === 'admin'
-  const isPremium = user?.is_premium === true || isAdmin
+  // 모든 회원이 전체 기능을 사용할 수 있도록 변경
+  const isPremium = !!user
 
   return (
     <AuthContext.Provider value={{ user, isLoading, isAdmin, isPremium, signUp, signIn, signOut, logActivity, refreshProfile }}>

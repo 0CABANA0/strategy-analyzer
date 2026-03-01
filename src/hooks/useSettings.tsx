@@ -14,8 +14,6 @@ interface SettingsContextValue {
   setBrowserApiKey: (value: string | ((prev: string) => string)) => void
   hasApiKey: () => boolean
   envKeyExists: boolean
-  skyworkApiKey: string
-  updateSkyworkApiKey: (key: string) => Promise<{ error: string | null }>
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -32,44 +30,32 @@ function getEnvApiKey(): string {
   return import.meta.env.VITE_OPENROUTER_API_KEY || ''
 }
 
-/** .env 에서 Skywork API 키 읽기 */
-function getEnvSkyworkApiKey(): string {
-  return import.meta.env.VITE_SKYWORK_API_KEY || ''
-}
-
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [rawSettings, setSettings] = useLocalStorage<Settings>('settings', DEFAULT_SETTINGS)
   const [globalModel, setGlobalModel] = useState<string>(DEFAULT_MODEL)
   const [isModelLoading, setIsModelLoading] = useState(true)
-  const [dbSkyworkApiKey, setDbSkyworkApiKey] = useState<string>('')
 
   // Supabase에서 전역 모델 설정 가져오기
   useEffect(() => {
     let cancelled = false
-    async function fetchGlobalSettings() {
+    async function fetchGlobalModel() {
       try {
         const { data, error } = await supabase
           .from('app_settings')
-          .select('key, value')
-          .in('key', ['ai_model', 'skywork_api_key'])
+          .select('value')
+          .eq('key', 'ai_model')
+          .single()
         if (!cancelled && !error && data) {
-          for (const row of data) {
-            if (row.key === 'ai_model') {
-              const model = typeof row.value === 'string' ? row.value : String(row.value)
-              setGlobalModel(model)
-            } else if (row.key === 'skywork_api_key') {
-              const key = typeof row.value === 'string' ? row.value : String(row.value)
-              setDbSkyworkApiKey(key)
-            }
-          }
+          const model = typeof data.value === 'string' ? data.value : String(data.value)
+          setGlobalModel(model)
         }
       } catch {
-        // fetch 실패 시 폴백 유지
+        // fetch 실패 시 DEFAULT_MODEL 폴백 유지
       } finally {
         if (!cancelled) setIsModelLoading(false)
       }
     }
-    fetchGlobalSettings()
+    fetchGlobalModel()
     return () => { cancelled = true }
   }, [])
 
@@ -102,28 +88,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     return { error: null }
   }, [])
 
-  // Skywork API 키: 환경변수 > Supabase app_settings
-  const skyworkApiKey = useMemo(() => getEnvSkyworkApiKey() || dbSkyworkApiKey, [dbSkyworkApiKey])
-
   const apiKey = useMemo(() => {
     // 우선순위: .env > LocalStorage
     return getEnvApiKey() || browserApiKey
   }, [browserApiKey])
 
   const hasApiKey = () => !!apiKey
-
-  // 관리자 전용: Skywork API 키 upsert
-  const updateSkyworkApiKey = useCallback(async (key: string): Promise<{ error: string | null }> => {
-    const { error } = await supabase
-      .from('app_settings')
-      .upsert(
-        { key: 'skywork_api_key', value: key, updated_at: new Date().toISOString() },
-        { onConflict: 'key' },
-      )
-    if (error) return { error: error.message }
-    setDbSkyworkApiKey(key)
-    return { error: null }
-  }, [])
 
   const value: SettingsContextValue = {
     settings,
@@ -135,8 +105,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setBrowserApiKey,
     hasApiKey,
     envKeyExists: !!getEnvApiKey(),
-    skyworkApiKey,
-    updateSkyworkApiKey,
   }
 
   return (
