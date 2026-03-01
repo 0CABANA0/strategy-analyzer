@@ -8,9 +8,10 @@ import ScenarioPanel from '../components/scenario/ScenarioPanel'
 import FinancialPanel from '../components/financial/FinancialPanel'
 import TemplateSelector from '../components/pptx/TemplateSelector'
 import FrameworkDAG from '../components/visualization/FrameworkDAG'
-import { ArrowLeft, FileText, Globe, ShieldCheck, Briefcase, GitBranch, Calculator, Presentation, Network } from 'lucide-react'
+import { ArrowLeft, FileText, FileDown, Globe, ShieldCheck, Briefcase, GitBranch, Calculator, Presentation, Network } from 'lucide-react'
 import { exportHtml } from '../utils/exportHtml'
 import { exportMarkdown } from '../utils/exportMarkdown'
+import { exportPdf } from '../utils/exportPdf'
 import { exportPptx } from '../utils/exportPptx'
 import { useToast } from '../hooks/useToast'
 import { getSelectedTemplate, getSelectedTemplateId } from '../utils/pptxTemplateStore'
@@ -31,6 +32,7 @@ export default function PreviewPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const [activePanels, setActivePanels] = useState<Set<AnalysisPanel>>(new Set())
+  const [isPdfExporting, setIsPdfExporting] = useState(false)
   const [isPptxExporting, setIsPptxExporting] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState(() => getSelectedTemplateId())
   const [pptxTemplate, setPptxTemplate] = useState<PptxTemplate>(() => getSelectedTemplate())
@@ -54,6 +56,18 @@ export default function PreviewPage() {
   const handleTemplateSelect = (id: string, template: PptxTemplate) => {
     setSelectedTemplateId(id)
     setPptxTemplate(template)
+  }
+
+  const handlePdf = async () => {
+    setIsPdfExporting(true)
+    try {
+      await exportPdf(state)
+      toast.success('PDF 파일이 다운로드되었습니다.')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'PDF 생성 중 오류가 발생했습니다.')
+    } finally {
+      setIsPdfExporting(false)
+    }
   }
 
   const handlePptx = async () => {
@@ -113,6 +127,19 @@ export default function PreviewPage() {
           >
             <FileText className="w-4 h-4" />
             Markdown
+          </button>
+          <button
+            onClick={handlePdf}
+            disabled={isPdfExporting}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg transition-colors bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+            title="PDF 내보내기"
+          >
+            {isPdfExporting ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <FileDown className="w-4 h-4" />
+            )}
+            PDF
           </button>
           <TemplateSelector selectedId={selectedTemplateId} onSelect={handleTemplateSelect} />
           <button
