@@ -11,7 +11,9 @@ export type { ModelDefinition, ModelCategory, Settings } from './settings'
 
 export type { SectionDefinition } from './section'
 
-export type { AiCallParams, PromptResult, PromptContext, PromptTemplate, OpenRouterResponse, OpenRouterErrorBody } from './api'
+export type { ContentBlock, UserContent, AiCallParams, PromptResult, PromptContext, PromptTemplate, OpenRouterResponse, OpenRouterErrorBody } from './api'
+
+export type { SourceType, SourceMaterial } from './source'
 
 export type { FrameworkRecommendation, RecommendationResult } from './recommendation'
 

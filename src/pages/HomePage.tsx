@@ -4,6 +4,7 @@ import { useStrategy } from '../hooks/useStrategyDocument'
 import { useSettings } from '../hooks/useSettings'
 import { useRecommendation } from '../hooks/useRecommendation'
 import RecommendationPanel from '../components/recommendation/RecommendationPanel'
+import SourceUploadZone from '../components/source/SourceUploadZone'
 import { ArrowRight, AlertCircle, Sparkles, Wand2 } from 'lucide-react'
 import AppIcon from '../components/common/AppIcon'
 
@@ -98,6 +99,9 @@ export default function HomePage() {
               </button>
             ))}
           </div>
+
+          {/* 소스 자료 업로드 (NotebookLM 스타일) */}
+          <SourceUploadZone />
 
           {!hasApiKey() && (
             <div className="flex items-start gap-2 mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-sm text-amber-700 dark:text-amber-400">

@@ -9,6 +9,7 @@ export default function SignupPage() {
   const { user, isLoading: authLoading, signUp } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
+  const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -40,7 +41,7 @@ export default function SignupPage() {
     }
 
     setIsSubmitting(true)
-    const { error, needsVerification, confirmed } = await signUp(email, password)
+    const { error, needsVerification, confirmed } = await signUp(email, password, displayName.trim() || undefined)
     setIsSubmitting(false)
 
     if (error) {
@@ -66,6 +67,23 @@ export default function SignupPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+          <div>
+            <label htmlFor="display-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              이름
+            </label>
+            <input
+              id="display-name"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+              placeholder="홍길동"
+              autoComplete="name"
+              disabled={isSubmitting}
+              autoFocus
+            />
+          </div>
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               이메일

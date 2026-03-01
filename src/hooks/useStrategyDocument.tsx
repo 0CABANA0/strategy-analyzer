@@ -4,7 +4,7 @@ import { FRAMEWORKS } from '../data/frameworkDefinitions'
 import { SECTIONS } from '../data/sectionDefinitions'
 import { supabase } from '../lib/supabase'
 import { useToast } from './useToast'
-import type { StrategyDocument, FrameworkState, FrameworkData, StepProgress, RecommendationResult, ExecutiveSummary, ScenarioResult, FinancialResult } from '../types'
+import type { StrategyDocument, FrameworkState, FrameworkData, StepProgress, RecommendationResult, ExecutiveSummary, ScenarioResult, FinancialResult, SourceMaterial } from '../types'
 
 const STORAGE_PREFIX = 'strategy-analyzer:'
 const SYNC_DEBOUNCE_MS = 2000
@@ -23,6 +23,8 @@ type DocumentAction =
   | { type: 'SET_EXECUTIVE_SUMMARY'; payload: ExecutiveSummary }
   | { type: 'SET_SCENARIO_RESULT'; payload: ScenarioResult }
   | { type: 'SET_FINANCIAL_RESULT'; payload: FinancialResult }
+  | { type: 'ADD_SOURCE'; payload: SourceMaterial }
+  | { type: 'REMOVE_SOURCE'; payload: string }
 
 // --- Context Value Interface ---
 interface StrategyContextValue {
@@ -43,6 +45,8 @@ interface StrategyContextValue {
   setExecutiveSummary: (summary: ExecutiveSummary) => void
   setScenarioResult: (result: ScenarioResult) => void
   setFinancialResult: (result: FinancialResult) => void
+  addSource: (source: SourceMaterial) => void
+  removeSource: (id: string) => void
 }
 
 // --- Initial State ---
@@ -156,6 +160,20 @@ function documentReducer(state: StrategyDocument, action: DocumentAction): Strat
     case 'SET_FINANCIAL_RESULT':
       return { ...state, financialResult: action.payload, updatedAt: new Date().toISOString() }
 
+    case 'ADD_SOURCE':
+      return {
+        ...state,
+        sourceMaterials: [...(state.sourceMaterials ?? []), action.payload],
+        updatedAt: new Date().toISOString(),
+      }
+
+    case 'REMOVE_SOURCE':
+      return {
+        ...state,
+        sourceMaterials: (state.sourceMaterials ?? []).filter((s) => s.id !== action.payload),
+        updatedAt: new Date().toISOString(),
+      }
+
     default:
       return state
   }
@@ -205,6 +223,7 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
           executive_summary: state.executiveSummary ?? null,
           scenario_result: state.scenarioResult ?? null,
           financial_result: state.financialResult ?? null,
+          source_materials: state.sourceMaterials ?? null,
           created_at: state.createdAt,
           updated_at: state.updatedAt,
         }, { onConflict: 'id' }).then(({ error }) => {
@@ -267,6 +286,14 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_FINANCIAL_RESULT', payload: result })
   }, [])
 
+  const addSource = useCallback((source: SourceMaterial) => {
+    dispatch({ type: 'ADD_SOURCE', payload: source })
+  }, [])
+
+  const removeSource = useCallback((id: string) => {
+    dispatch({ type: 'REMOVE_SOURCE', payload: id })
+  }, [])
+
   // --- Computed ---
   const getStepProgress = useCallback((stepNumber: number): StepProgress => {
     const section = SECTIONS.find((s) => s.number === stepNumber)
@@ -322,6 +349,8 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
     getStepProgress,
     getTotalProgress,
     getFrameworkContext,
+    addSource,
+    removeSource,
   }
 
   return (

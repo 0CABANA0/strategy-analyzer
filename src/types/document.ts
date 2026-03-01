@@ -3,6 +3,7 @@ import type { RecommendationResult } from './recommendation'
 import type { ExecutiveSummary } from './validation'
 import type { ScenarioResult } from './scenario'
 import type { FinancialResult } from './financial'
+import type { SourceMaterial } from './source'
 
 export type FrameworkStatus = 'empty' | 'generating' | 'completed' | 'error'
 
@@ -24,6 +25,7 @@ export interface StrategyDocument {
   executiveSummary?: ExecutiveSummary
   scenarioResult?: ScenarioResult
   financialResult?: FinancialResult
+  sourceMaterials?: SourceMaterial[]
 }
 
 export interface DocumentMeta {

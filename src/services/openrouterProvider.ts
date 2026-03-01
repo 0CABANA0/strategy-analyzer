@@ -18,6 +18,9 @@ function getApiUrl(): string {
 export async function callOpenRouter({ apiKey, model, system, user, temperature, maxTokens, signal }: AiCallParams): Promise<string> {
   let response: Response
 
+  // 멀티모달 콘텐츠 감지 (이미지 포함 여부)
+  const hasImages = Array.isArray(user) && user.some((b) => b.type === 'image_url')
+
   try {
     response = await fetch(getApiUrl(), {
       method: 'POST',
@@ -35,7 +38,8 @@ export async function callOpenRouter({ apiKey, model, system, user, temperature,
         ],
         temperature: temperature ?? 0.7,
         max_tokens: maxTokens ?? 8192,
-        response_format: { type: 'json_object' },
+        // 이미지 포함 시 JSON 모드 비활성화 (일부 모델 비호환)
+        ...(hasImages ? {} : { response_format: { type: 'json_object' } }),
       }),
       signal,
     })

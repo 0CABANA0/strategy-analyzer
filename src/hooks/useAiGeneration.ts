@@ -4,10 +4,11 @@ import { useSettings } from './useSettings'
 import { useAuth } from './useAuth'
 import { callAI, parseJsonResponse } from '../services/aiService'
 import { promptTemplates } from '../services/prompts'
+import { buildSourceContext } from '../services/prompts/common'
 import { sampleData } from '../data/sampleData'
 import { withRetry } from '../utils/retry'
 import { getUserFriendlyMessage } from '../utils/errors'
-import type { FrameworkData } from '../types'
+import type { FrameworkData, UserContent, ContentBlock } from '../types'
 
 interface UseAiGenerationReturn {
   generate: (frameworkId: string, feedback?: string) => Promise<void>
@@ -76,9 +77,30 @@ export function useAiGeneration(): UseAiGenerationReturn {
         context,
       })
 
+      // 소스 자료(텍스트/URL)를 user 프롬프트에 추가
+      const sources = state.sourceMaterials ?? []
+      const sourceText = buildSourceContext(sources)
+      if (sourceText) {
+        user += sourceText
+      }
+
       // 일관성 검증 피드백이 있으면 프롬프트에 개선 요청 추가
       if (feedback) {
         user += `\n\n[전략 일관성 검증 피드백 — 반드시 반영]\n${feedback}\n위 피드백을 반영하여 기존 분석을 개선해 주세요. 다른 프레임워크와의 일관성을 확보하면서 해당 이슈를 해결하세요.`
+      }
+
+      // 이미지 소스가 있으면 멀티모달 콘텐츠 블록으로 변환
+      const imageSources = sources.filter((s) => s.type === 'image' && s.content)
+      let userContent: UserContent = user
+      if (imageSources.length > 0) {
+        const blocks: ContentBlock[] = [
+          { type: 'text', text: user },
+          ...imageSources.map((img) => ({
+            type: 'image_url' as const,
+            image_url: { url: img.content },
+          })),
+        ]
+        userContent = blocks
       }
 
       const controller = new AbortController()
@@ -89,7 +111,7 @@ export function useAiGeneration(): UseAiGenerationReturn {
           apiKey,
           model: settings.model,
           system,
-          user,
+          user: userContent,
           temperature: settings.temperature,
           maxTokens: settings.maxTokens,
           signal: controller.signal,

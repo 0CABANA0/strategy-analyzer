@@ -1,6 +1,7 @@
 /** 전략 일관성 검증 패널 */
 import { useConsistencyCheck } from '../../hooks/useConsistencyCheck'
 import { useAiGeneration } from '../../hooks/useAiGeneration'
+import { useToast } from '../../hooks/useToast'
 import { AlertTriangle, CheckCircle, ChevronDown, ChevronUp, Loader2, RefreshCw, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { FRAMEWORKS } from '../../data/frameworkDefinitions'
@@ -97,11 +98,16 @@ function IssueCard({ issue, onReanalyze, isReanalyzing }: {
 export default function ConsistencyPanel() {
   const { result, isLoading, error, runCheck } = useConsistencyCheck()
   const { generateAll, isGeneratingAny } = useAiGeneration()
+  const toast = useToast()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   const handleReanalyze = async (frameworkIds: string[], feedback: string) => {
+    const names = frameworkIds
+      .map((id) => FRAMEWORKS[id as keyof typeof FRAMEWORKS]?.name ?? id)
+      .join(', ')
     await generateAll(frameworkIds, feedback)
     await runCheck()
+    toast.success(`재분석 완료: ${names} — 보고서가 업데이트되었습니다.`)
   }
 
   if (!result && !isLoading && !error) {

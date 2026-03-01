@@ -8,7 +8,7 @@ interface AuthContextValue {
   isLoading: boolean
   isAdmin: boolean
   isPremium: boolean
-  signUp: (email: string, password: string) => Promise<{ error: string | null; needsVerification: boolean; confirmed: boolean }>
+  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: string | null; needsVerification: boolean; confirmed: boolean }>
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
   logActivity: (action: string, metadata?: Record<string, unknown>) => Promise<void>
@@ -87,18 +87,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }, [user])
 
-  const signUp = useCallback(async (email: string, password: string) => {
+  const signUp = useCallback(async (email: string, password: string, displayName?: string) => {
     const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${siteUrl}/auth/confirm`,
+        data: displayName ? { display_name: displayName } : undefined,
       },
     })
     if (error) return { error: error.message, needsVerification: false, confirmed: false }
     // autoconfirm이 켜져 있으면 session이 바로 반환됨
     const confirmed = !!data.session
+    // display_name을 profiles 테이블에 직접 저장 (트리거가 처리하지 못할 경우 대비)
+    if (data.user && displayName) {
+      supabase.from('profiles').update({ display_name: displayName }).eq('id', data.user.id).then()
+    }
     return { error: null, needsVerification: !confirmed, confirmed }
   }, [])
 
