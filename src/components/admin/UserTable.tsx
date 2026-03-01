@@ -17,6 +17,12 @@ function formatDate(d: string | null) {
   return new Date(d).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })
 }
 
+/** display_name이 없으면 이메일 @ 앞부분 반환 */
+function getDisplayName(profile: Profile): { name: string; isAuto: boolean } {
+  if (profile.display_name) return { name: profile.display_name, isAuto: false }
+  return { name: profile.email.split('@')[0], isAuto: true }
+}
+
 export default function UserTable({ profiles, onUpdate, onSuspend }: UserTableProps) {
   const { user: currentUser } = useAuth()
   const toast = useToast()
@@ -42,7 +48,7 @@ export default function UserTable({ profiles, onUpdate, onSuspend }: UserTablePr
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success(`${profile.email}의 역할이 ${newRole === 'admin' ? '관리자' : '사용자'}로 변경되었습니다.`)
+      toast.success(`${getDisplayName(profile).name}의 역할이 ${newRole === 'admin' ? '관리자' : '사용자'}로 변경되었습니다.`)
       onUpdate(profile.id, newRole)
     }
   }
@@ -57,10 +63,11 @@ export default function UserTable({ profiles, onUpdate, onSuspend }: UserTablePr
     if (error) {
       toast.error(`상태 변경 실패: ${error}`)
     } else {
+      const targetName = getDisplayName(confirmTarget).name
       toast.success(
         newStatus === 'suspended'
-          ? `${confirmTarget.email} 계정이 정지되었습니다.`
-          : `${confirmTarget.email} 계정이 복원되었습니다.`,
+          ? `${targetName} 계정이 정지되었습니다.`
+          : `${targetName} 계정이 복원되었습니다.`,
       )
     }
   }
@@ -134,7 +141,16 @@ export default function UserTable({ profiles, onUpdate, onSuspend }: UserTablePr
                     className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 ${isSuspended ? 'opacity-50' : ''}`}
                   >
                     <td className="px-4 py-2 text-gray-900 dark:text-gray-100">{p.email}</td>
-                    <td className="px-4 py-2 text-gray-600 dark:text-gray-400">{p.display_name ?? '-'}</td>
+                    <td className="px-4 py-2">
+                      {(() => {
+                        const { name, isAuto } = getDisplayName(p)
+                        return (
+                          <span className={isAuto ? 'text-gray-400 dark:text-gray-500 italic' : 'text-gray-700 dark:text-gray-300'}>
+                            {name}
+                          </span>
+                        )
+                      })()}
+                    </td>
                     <td className="px-4 py-2">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                         p.role === 'admin'
@@ -219,8 +235,8 @@ export default function UserTable({ profiles, onUpdate, onSuspend }: UserTablePr
         title={confirmTarget?.status === 'suspended' ? '계정 복원' : '강제 퇴출'}
         message={
           confirmTarget?.status === 'suspended'
-            ? `${confirmTarget.email} 계정을 복원하시겠습니까? 복원 후 다시 로그인할 수 있습니다.`
-            : `${confirmTarget?.email ?? ''} 계정을 정지하시겠습니까? 해당 사용자는 즉시 로그아웃되며 로그인이 차단됩니다.`
+            ? `${confirmTarget.display_name ?? confirmTarget.email} 계정을 복원하시겠습니까? 복원 후 다시 로그인할 수 있습니다.`
+            : `${confirmTarget?.display_name ?? confirmTarget?.email ?? ''} 계정을 정지하시겠습니까? 해당 사용자는 즉시 로그아웃되며 로그인이 차단됩니다.`
         }
         confirmLabel={confirmTarget?.status === 'suspended' ? '복원' : '퇴출'}
         variant={confirmTarget?.status === 'suspended' ? 'default' : 'danger'}
