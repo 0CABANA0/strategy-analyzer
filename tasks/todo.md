@@ -50,9 +50,17 @@
 - [x] chunkSizeWarningLimit 1000 (html2pdf 이미 동적 import)
 - [x] 테스트 229개 통과 (32개 파일)
 
+### 보강 작업 (2026-03-12)
+
+- [x] CLAUDE.md 갱신 — 테스트 240개, 신규 훅/기능 반영
+- [x] 공유 링크 버그 수정 — document_id 누락 + URL 줄바꿈
+- [x] 생성 예상 시간 표시 — FrameworkCard에 경과/예상 시간 + 안내 메시지
+
 ## 알려진 이슈
 
 - Supabase 마이그레이션 적용 완료: `shared_documents`, `teams`, `team_members`, `team_documents` 테이블 + RLS 정책
+- `strategy_documents` 테이블에 RLS 정책 미설정 — 마이그레이션 추가 필요
+- ComparePage에서 다른 사용자 문서 접근 가능 — user_id 필터 추가 필요
 
 ## 향후 개선 후보 (미확정)
 

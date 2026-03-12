@@ -29,8 +29,17 @@ export default function TeamPage() {
   }
 
   const handleInvite = async (email: string) => {
-    await inviteMember(email)
-    toast.success(`${email}을(를) 초대했습니다.`)
+    const trimmed = email.trim().toLowerCase()
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error('유효한 이메일 주소를 입력해주세요.')
+      return
+    }
+    try {
+      await inviteMember(trimmed)
+      toast.success(`${trimmed}을(를) 초대했습니다.`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : '초대 실패')
+    }
   }
 
   const handleRemove = async (userId: string) => {

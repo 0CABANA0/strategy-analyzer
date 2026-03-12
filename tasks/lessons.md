@@ -43,6 +43,20 @@
 - `SettingsContextValue`에 `apiKey`, `browserApiKey`, `hasApiKey()` 존재
 - 훅 사용: `const { settings, apiKey } = useSettings()` — settings.apiKey 아님
 
+## 2026-03-12: Supabase insert 시 NOT NULL 컬럼 누락
+
+- **증상**: `null value in column "document_id" violates not-null constraint`
+- **원인**: `shared_documents.insert()`에서 `document_id` 필드를 전달하지 않음
+- **해결**: `document_id: state.id` 추가
+- **교훈**: 마이그레이션 SQL의 NOT NULL 컬럼과 클라이언트 insert 코드를 반드시 대조할 것
+
+## 2026-03-12: 환경변수 trailing newline 주의
+
+- **증상**: 공유 링크 URL에 `\n`이 포함되어 접근 불가
+- **원인**: Vercel 환경변수 `VITE_SITE_URL`에 줄바꿈 문자 포함
+- **해결**: `.trim()` 방어 코드 추가
+- **교훈**: 환경변수에서 가져온 문자열은 항상 `.trim()` 처리할 것
+
 ## 2026-03-12: CSS box-shadow 오버레이 트릭
 
 - 하이라이트 영역 외 전체를 어둡게: `box-shadow: 0 0 0 9999px rgba(0,0,0,0.4)`

@@ -25,11 +25,13 @@ export default function ComparePage() {
     }
 
     const loadDoc = async (id: string): Promise<StrategyDocument | null> => {
-      // Supabase 시도
+      // Supabase 시도 (RLS + user_id 필터로 본인 문서만 조회)
+      const { data: { session } } = await supabase.auth.getSession()
       const { data } = await supabase
         .from('strategy_documents')
         .select('*')
         .eq('id', id)
+        .eq('user_id', session?.user?.id ?? '')
         .single()
 
       if (data) {

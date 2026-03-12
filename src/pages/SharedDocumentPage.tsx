@@ -20,12 +20,22 @@ export default function SharedDocumentPage() {
       .then((doc) => {
         if (doc) {
           setState(doc)
+          // 동적 메타 태그 업데이트 (브라우저 탭 + Google 크롤러)
+          document.title = `${doc.businessItem} — 전략 PRD | 전략분석기`
+          const desc = `${doc.businessItem} 전략 PRD — 20개 프레임워크 기반 AI 전략분석 결과`
+          document.querySelector('meta[name="description"]')?.setAttribute('content', desc)
+          document.querySelector('meta[property="og:title"]')?.setAttribute('content', `${doc.businessItem} — 전략 PRD`)
+          document.querySelector('meta[property="og:description"]')?.setAttribute('content', desc)
+          document.querySelector('meta[property="og:url"]')?.setAttribute('content', window.location.href)
         } else {
           setError('공유 문서를 찾을 수 없거나 만료되었습니다.')
         }
       })
       .catch(() => setError('문서를 불러오는 중 오류가 발생했습니다.'))
       .finally(() => setLoading(false))
+
+    // cleanup: 원래 title 복원
+    return () => { document.title = '전략분석기 | AI 전략 PRD 자동 생성' }
   }, [shareId])
 
   if (loading) {
