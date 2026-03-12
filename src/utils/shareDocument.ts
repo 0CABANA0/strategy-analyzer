@@ -29,10 +29,11 @@ export interface ShareResult {
 /** 문서를 공유 가능한 스냅샷으로 생성 */
 export async function createShareLink(state: StrategyDocument): Promise<ShareResult> {
   const shareId = generateShareId()
-  const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin
+  const siteUrl = (import.meta.env.VITE_SITE_URL || window.location.origin).trim()
 
   const { error } = await supabase.from('shared_documents').insert({
     share_id: shareId,
+    document_id: state.id,
     document_snapshot: state,
     created_by: (await supabase.auth.getUser()).data.user?.id,
   })

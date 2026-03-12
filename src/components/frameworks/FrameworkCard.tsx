@@ -7,6 +7,8 @@ import { Sparkles, RotateCcw, Loader2, AlertCircle, CheckCircle2, ChevronDown, C
 
 const ModelCompareModal = lazy(() => import('./ModelCompareModal'))
 import { getRecommendationInfo } from '../../utils/recommendation'
+import { getEstimatedDuration } from '../../utils/generationMetrics'
+import { useSettings } from '../../hooks/useSettings'
 import FrameworkCardSkeleton from './FrameworkCardSkeleton'
 
 /** 초 단위 표시 (60초 미만: "23초", 이상: "1분 30초") */
@@ -108,6 +110,7 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
   const fw = FRAMEWORKS[frameworkId]
   const { state, clearFramework } = useStrategy()
   const { generate, cancel, elapsedMs, lastDurations, generatingSet, streamingText } = useAiGeneration()
+  const { settings } = useSettings()
   const { coach, getCoaching, loading: coachingLoading } = useAiCoaching()
   const fState = state?.frameworks[frameworkId]
   const [collapsed, setCollapsed] = useState(false)
@@ -158,13 +161,16 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
                 {score != null && score < 100 && <span className="ml-0.5">{score}%</span>}
               </span>
             )}
-            {/* 생성 중: 경과 시간 */}
-            {status === 'generating' && generatingSet.has(frameworkId) && elapsedMs >= 1000 && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-primary-500 bg-primary-50 dark:bg-primary-900/30 shrink-0 tabular-nums">
-                <Clock className="w-3 h-3" />
-                {formatDurationSec(elapsedMs)}
-              </span>
-            )}
+            {/* 생성 중: 경과 시간 / 예상 시간 */}
+            {status === 'generating' && generatingSet.has(frameworkId) && elapsedMs >= 1000 && (() => {
+              const estimated = getEstimatedDuration(frameworkId, settings.model)
+              return (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-primary-500 bg-primary-50 dark:bg-primary-900/30 shrink-0 tabular-nums">
+                  <Clock className="w-3 h-3" />
+                  {formatDurationSec(elapsedMs)} / ~{formatDurationSec(estimated)}
+                </span>
+              )
+            })()}
             {/* 완료: 소요 시간 */}
             {status === 'completed' && lastDurations.get(frameworkId) != null && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/30 shrink-0 tabular-nums">
@@ -266,12 +272,19 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
           {status === 'generating' && streamingText != null && generatingSet.has(frameworkId) && (
             <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg max-h-60 overflow-auto">
               <pre className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap font-mono leading-relaxed">
-                {streamingText || '⏳ 응답 대기 중...'}
+                {streamingText || `⏳ AI 분석 중... (약 ${formatDurationSec(getEstimatedDuration(frameworkId, settings.model))} 소요)`}
                 <span className="inline-block w-1.5 h-3.5 bg-primary-500 animate-pulse ml-0.5 align-text-bottom" />
               </pre>
             </div>
           )}
-          {status === 'generating' && streamingText == null && <FrameworkCardSkeleton />}
+          {status === 'generating' && streamingText == null && (
+            <>
+              <p className="text-xs text-center text-gray-400 dark:text-gray-500 mb-2">
+                AI가 분석 중입니다 · 약 {formatDurationSec(getEstimatedDuration(frameworkId, settings.model))} 소요
+              </p>
+              <FrameworkCardSkeleton />
+            </>
+          )}
           {/* AI 코칭 패널 */}
           {showCoaching && status === 'completed' && (
             <CoachingPanel coaching={coaching} loading={coachingLoading} />
