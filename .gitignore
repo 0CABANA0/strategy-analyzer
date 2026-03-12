@@ -30,6 +30,9 @@ dist-ssr
 
 .vercel
 
+# Bundle size baseline (로컬 전용)
+bundle-size.json
+
 # Playwright
 e2e/.auth/
 test-results/

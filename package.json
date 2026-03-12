@@ -12,7 +12,9 @@
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "bundle-size": "node scripts/bundle-size.mjs",
+    "bundle-size:save": "node scripts/bundle-size.mjs --save"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",
