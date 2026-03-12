@@ -41,7 +41,7 @@ function SwotAnalysis() {
       {/* SWOT 2x2 매트릭스 */}
       <div className="mb-4">
         <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">SWOT 분석</div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2">
           {QUADRANTS.map(({ key, label, color, textColor }) => (
             <div key={key} className={`rounded-lg border p-3 ${color}`}>
               <div className={`text-xs font-bold mb-2 ${textColor}`}>{label}</div>
@@ -54,7 +54,7 @@ function SwotAnalysis() {
       {/* 크로스분석 */}
       <div>
         <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">크로스 분석 (전략 도출)</div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2">
           {CROSS.map(({ key, label, hint, color }) => (
             <div key={key} className={`rounded-lg border p-3 ${color}`}>
               <div className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">{label}</div>

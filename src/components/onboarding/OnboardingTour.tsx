@@ -142,7 +142,7 @@ export default function OnboardingTour() {
 
       {/* 툴팁 */}
       <div
-        className="absolute z-10 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 animate-fade-in"
+        className="absolute z-10 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 animate-fade-in"
         style={tooltipStyle}
       >
         <div className="flex items-start justify-between mb-2">

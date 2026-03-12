@@ -121,7 +121,7 @@ export default function ModelCompareModal({ frameworkId, onClose }: ModelCompare
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ export default function ModelCompareModal({ frameworkId, onClose }: ModelCompare
               두 모델을 선택하고 "비교 실행"을 클릭하세요.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {results.map((r, idx) => (
                 <div
                   key={r.model}

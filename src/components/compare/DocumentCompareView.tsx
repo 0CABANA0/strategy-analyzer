@@ -66,7 +66,7 @@ function FrameworkDiffCard({ diff }: { diff: FrameworkDiff }) {
       {changedFields.length > 0 && (
         <div className="divide-y divide-gray-100 dark:divide-gray-700">
           {changedFields.map((field) => (
-            <div key={field.fieldKey} className="grid grid-cols-[120px_1fr_1fr] gap-0">
+            <div key={field.fieldKey} className="grid grid-cols-1 sm:grid-cols-[120px_1fr_1fr] gap-0">
               <div className="px-3 py-2 bg-gray-50 dark:bg-gray-800/50 text-xs font-medium text-gray-600 dark:text-gray-400 flex items-start">
                 {field.fieldLabel}
               </div>
