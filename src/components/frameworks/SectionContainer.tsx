@@ -4,7 +4,7 @@ import { useStrategy } from '../../hooks/useStrategyDocument'
 import { SECTIONS } from '../../data/sectionDefinitions'
 import { FRAMEWORKS, registerCustomFramework } from '../../data/frameworkDefinitions'
 import DynamicFramework from './DynamicFramework'
-import { Sparkles, Loader2, Lightbulb, Zap, GripVertical, RotateCcw, PlusCircle } from 'lucide-react'
+import { Sparkles, Loader2, Lightbulb, Zap, GripVertical, RotateCcw, PlusCircle, Search } from 'lucide-react'
 import { useAiGeneration } from '../../hooks/useAiGeneration'
 import { useSettings } from '../../hooks/useSettings'
 import { useFrameworkOrder } from '../../hooks/useFrameworkOrder'
@@ -76,6 +76,7 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
 
   const [showCustomEditor, setShowCustomEditor] = useState(false)
   const [customVersion, setCustomVersion] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // 이 섹션에 속하는 커스텀 프레임워크 (FRAMEWORKS에 동적 등록)
   const customFrameworks = useMemo(
@@ -102,7 +103,19 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
 
   if (!section) return null
 
-  const frameworkIds = frameworkOrder
+  // 검색 필터 적용
+  const filteredOrder = searchQuery.trim()
+    ? frameworkOrder.filter((fId: string) => {
+        const fw = FRAMEWORKS[fId]
+        const cf = customFrameworks.find((c) => c.id === fId)
+        const name = fw?.name ?? cf?.name ?? ''
+        const fullName = fw?.fullName ?? cf?.fullName ?? ''
+        const description = fw?.description ?? cf?.description ?? ''
+        const q = searchQuery.toLowerCase()
+        return name.toLowerCase().includes(q) || fullName.toLowerCase().includes(q) || description.toLowerCase().includes(q)
+      })
+    : frameworkOrder
+  const frameworkIds = filteredOrder
 
   // 현재 섹션에서 생성 중인 프레임워크 수 계산
   const sectionGeneratingIds = frameworkIds.filter((id: string) => generatingSet.has(id))
@@ -147,6 +160,25 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
         </div>
       )}
 
+      {/* 프레임워크 검색 */}
+      {frameworkOrder.length > 3 && (
+        <div className="mb-3 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="프레임워크 검색... (이름, 설명)"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500"
+          />
+          {searchQuery && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+              {filteredOrder.length}/{frameworkOrder.length}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* 전체 생성 버튼 + 진행 상황 */}
       <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
         <button
@@ -162,6 +194,7 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
           스트리밍
         </button>
         <button
+          data-tour="generate-all"
           onClick={() => generateAll(frameworkIds)}
           disabled={isGeneratingAny}
           className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"

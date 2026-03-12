@@ -21,7 +21,7 @@ export default function WizardShell({ children }: WizardShellProps) {
       <Sidebar />
       <MobileSidebar isOpen={isOpen} onClose={close} />
       <main id="main-content" className="flex-1 min-w-0">
-        <StepIndicator />
+        <div data-tour="section-tabs"><StepIndicator /></div>
         {section && (
           <div className="mb-6 animate-fade-in">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">

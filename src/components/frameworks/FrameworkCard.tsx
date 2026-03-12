@@ -2,7 +2,8 @@ import React, { useState, lazy, Suspense } from 'react'
 import { FRAMEWORKS } from '../../data/frameworkDefinitions'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { useAiGeneration } from '../../hooks/useAiGeneration'
-import { Sparkles, RotateCcw, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Star, ThumbsUp, X, Clock, ArrowLeftRight } from 'lucide-react'
+import { useAiCoaching, type CoachingResult } from '../../hooks/useAiCoaching'
+import { Sparkles, RotateCcw, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Star, ThumbsUp, X, Clock, ArrowLeftRight, GraduationCap } from 'lucide-react'
 
 const ModelCompareModal = lazy(() => import('./ModelCompareModal'))
 import { getRecommendationInfo } from '../../utils/recommendation'
@@ -23,6 +24,81 @@ const LEVEL_BADGE = {
   optional: null,
 } as const
 
+const PRIORITY_COLORS = {
+  high: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/30',
+  medium: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-900/30',
+  low: 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/30',
+} as const
+
+function CoachingPanel({ coaching, loading }: { coaching?: CoachingResult; loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="mb-3 p-3 bg-amber-50/50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800 animate-pulse">
+        <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          AI 코칭 분석 중...
+        </div>
+      </div>
+    )
+  }
+  if (!coaching) return null
+
+  return (
+    <div className="mb-3 p-3 bg-amber-50/50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800 animate-fade-in">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+          <span className="text-sm font-medium text-amber-800 dark:text-amber-300">AI 코칭</span>
+        </div>
+        <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded-full">
+          {coaching.score}점
+        </span>
+      </div>
+
+      {coaching.strengths.length > 0 && (
+        <div className="mb-2">
+          <p className="text-[11px] font-medium text-green-700 dark:text-green-400 mb-1">잘한 점</p>
+          <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
+            {coaching.strengths.map((s, i) => <li key={i} className="flex gap-1"><span className="text-green-500 shrink-0">+</span>{s}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {coaching.improvements.length > 0 && (
+        <div className="mb-2">
+          <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400 mb-1">개선 제안</p>
+          <div className="space-y-1.5">
+            {coaching.improvements.map((imp, i) => (
+              <div key={i} className="text-xs">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${PRIORITY_COLORS[imp.priority] ?? PRIORITY_COLORS.medium}`}>
+                    {imp.priority === 'high' ? '높음' : imp.priority === 'medium' ? '보통' : '낮음'}
+                  </span>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">{imp.area}</span>
+                </div>
+                <p className="text-gray-500 dark:text-gray-400 ml-1">{imp.suggestion}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {coaching.missingPerspectives.length > 0 && (
+        <div className="mb-2">
+          <p className="text-[11px] font-medium text-blue-700 dark:text-blue-400 mb-1">누락된 관점</p>
+          <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
+            {coaching.missingPerspectives.map((m, i) => <li key={i} className="flex gap-1"><span className="text-blue-500 shrink-0">?</span>{m}</li>)}
+          </ul>
+        </div>
+      )}
+
+      <p className="text-xs text-gray-500 dark:text-gray-400 italic border-t border-amber-200 dark:border-amber-800 pt-2 mt-2">
+        {coaching.overallAdvice}
+      </p>
+    </div>
+  )
+}
+
 interface FrameworkCardProps {
   frameworkId: string
   children: React.ReactNode
@@ -32,9 +108,12 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
   const fw = FRAMEWORKS[frameworkId]
   const { state, clearFramework } = useStrategy()
   const { generate, cancel, elapsedMs, lastDurations, generatingSet, streamingText } = useAiGeneration()
+  const { coach, getCoaching, loading: coachingLoading } = useAiCoaching()
   const fState = state?.frameworks[frameworkId]
   const [collapsed, setCollapsed] = useState(false)
   const [showCompare, setShowCompare] = useState(false)
+  const [showCoaching, setShowCoaching] = useState(false)
+  const coaching = getCoaching(frameworkId)
 
   if (!fw) return null
 
@@ -120,6 +199,23 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
             </button>
           ) : (
             <>
+              {status === 'completed' && (
+                <button
+                  onClick={() => {
+                    setShowCoaching(!showCoaching)
+                    if (!coaching && !coachingLoading) coach(frameworkId)
+                  }}
+                  disabled={coachingLoading}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    showCoaching
+                      ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/20'
+                      : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:text-gray-500 dark:hover:text-amber-400 dark:hover:bg-amber-900/20'
+                  }`}
+                  title="AI 코칭"
+                >
+                  {coachingLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <GraduationCap className="w-3.5 h-3.5" />}
+                </button>
+              )}
               <button
                 onClick={() => setShowCompare(true)}
                 className="p-1.5 text-gray-400 hover:text-primary-500 rounded-md hover:bg-primary-50 transition-colors dark:text-gray-500 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
@@ -176,6 +272,10 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
             </div>
           )}
           {status === 'generating' && streamingText == null && <FrameworkCardSkeleton />}
+          {/* AI 코칭 패널 */}
+          {showCoaching && status === 'completed' && (
+            <CoachingPanel coaching={coaching} loading={coachingLoading} />
+          )}
           {(status === 'completed' || status === 'error') && children}
         </div>
       )}

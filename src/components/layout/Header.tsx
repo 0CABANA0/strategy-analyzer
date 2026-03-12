@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, History, Settings, FileText, Sun, Moon, Menu, Shield, LogOut, Users, LucideIcon } from 'lucide-react'
+import { Home, History, Settings, FileText, Sun, Moon, Menu, Shield, LogOut, Users, LucideIcon, Cloud, CloudOff, Loader2, Check } from 'lucide-react'
 import AppIcon from '../common/AppIcon'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { useTheme } from '../../hooks/useTheme'
@@ -14,7 +14,7 @@ interface NavItem {
 
 export default function Header() {
   const location = useLocation()
-  const { getTotalProgress } = useStrategy()
+  const { getTotalProgress, saveStatus } = useStrategy()
   const progress = getTotalProgress()
   const { isDark, setTheme } = useTheme()
   const { toggle } = useMobileSidebar()
@@ -52,7 +52,7 @@ export default function Header() {
         </div>
 
         {isAnalyzer && (
-          <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <div data-tour="preview-link" className="hidden sm:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <FileText className="w-4 h-4" />
             <span>{progress.completed}/{progress.total} 완료</span>
             <div className="w-24 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -60,6 +60,21 @@ export default function Header() {
                 className="h-full bg-primary-500 rounded-full transition-all duration-500"
                 style={{ width: `${progress.percent}%` }}
               />
+            </div>
+            {/* 자동 저장 상태 표시 */}
+            <div className="flex items-center gap-1 text-xs ml-1">
+              {saveStatus === 'saving' && (
+                <><Loader2 className="w-3 h-3 animate-spin text-blue-400" /><span className="text-blue-400">저장 중</span></>
+              )}
+              {saveStatus === 'saved' && (
+                <><Check className="w-3 h-3 text-green-500" /><span className="text-green-500">저장됨</span></>
+              )}
+              {saveStatus === 'error' && (
+                <><CloudOff className="w-3 h-3 text-red-400" /><span className="text-red-400">동기화 실패</span></>
+              )}
+              {saveStatus === 'idle' && (
+                <Cloud className="w-3 h-3 text-gray-300 dark:text-gray-600" />
+              )}
             </div>
           </div>
         )}

@@ -5,6 +5,7 @@ import { useWizard } from '../hooks/useWizard'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import WizardShell from '../components/wizard/WizardShell'
 import SectionContainer from '../components/frameworks/SectionContainer'
+import OnboardingTour from '../components/onboarding/OnboardingTour'
 
 export default function AnalyzerPage() {
   const { state } = useStrategy()
@@ -23,10 +24,11 @@ export default function AnalyzerPage() {
 
   return (
     <WizardShell>
-      <div className="mb-3 inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded-full text-sm">
+      <div data-tour="business-item" className="mb-3 inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded-full text-sm">
         <span className="font-medium">{state.businessItem}</span>
       </div>
       <SectionContainer stepNumber={currentStep} />
+      <OnboardingTour />
     </WizardShell>
   )
 }

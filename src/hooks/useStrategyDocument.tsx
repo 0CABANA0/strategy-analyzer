@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react'
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { FRAMEWORKS } from '../data/frameworkDefinitions'
 import { SECTIONS } from '../data/sectionDefinitions'
@@ -47,6 +47,7 @@ interface StrategyContextValue {
   setFinancialResult: (result: FinancialResult) => void
   addSource: (source: SourceMaterial) => void
   removeSource: (id: string) => void
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error'
 }
 
 // --- Initial State ---
@@ -198,6 +199,8 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
 
   // 자동 저장 (localStorage 즉시 + Supabase 디바운스)
   const syncTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const savedTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
   useEffect(() => {
     if (!state?.id) return
@@ -209,10 +212,17 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
       console.warn('자동 저장 실패:', e)
     }
     // Supabase 디바운스 동기화
+    setSaveStatus('saving')
     clearTimeout(syncTimer.current)
+    clearTimeout(savedTimer.current)
     syncTimer.current = setTimeout(() => {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session?.user) return
+        if (!session?.user) {
+          // 로그인하지 않은 경우 로컬 저장만 완료
+          setSaveStatus('saved')
+          savedTimer.current = setTimeout(() => setSaveStatus('idle'), 2000)
+          return
+        }
         supabase.from('strategy_documents').upsert({
           id: state.id,
           user_id: session.user.id,
@@ -230,11 +240,18 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
           if (error) {
             console.warn('Supabase 동기화 실패:', error.message)
             warning('클라우드 동기화에 실패했습니다. 로컬에는 저장되어 있습니다.')
+            setSaveStatus('error')
+          } else {
+            setSaveStatus('saved')
           }
+          savedTimer.current = setTimeout(() => setSaveStatus('idle'), 2000)
         })
       })
     }, SYNC_DEBOUNCE_MS)
-    return () => clearTimeout(syncTimer.current)
+    return () => {
+      clearTimeout(syncTimer.current)
+      clearTimeout(savedTimer.current)
+    }
   }, [state])
 
   // --- Actions ---
@@ -351,6 +368,7 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
     getFrameworkContext,
     addSource,
     removeSource,
+    saveStatus,
   }
 
   return (

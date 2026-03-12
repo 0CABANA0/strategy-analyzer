@@ -5,8 +5,9 @@ import { useSettings } from '../hooks/useSettings'
 import { useRecommendation } from '../hooks/useRecommendation'
 import RecommendationPanel from '../components/recommendation/RecommendationPanel'
 import SourceUploadZone from '../components/source/SourceUploadZone'
-import { ArrowRight, AlertCircle, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowRight, AlertCircle, Sparkles, Wand2, LayoutTemplate } from 'lucide-react'
 import AppIcon from '../components/common/AppIcon'
+import { INDUSTRY_TEMPLATES, type IndustryTemplate } from '../data/industryTemplates'
 
 const EXAMPLES: string[] = [
   'AI 기반 예지보전 플랫폼',
@@ -25,6 +26,13 @@ export default function HomePage() {
   const { recommendation, isLoading, error, generateRecommendation } = useRecommendation()
 
   const [showRecommendation, setShowRecommendation] = useState(false)
+  const [showTemplates, setShowTemplates] = useState(false)
+
+  const handleTemplateSelect = (template: IndustryTemplate, example: string) => {
+    setInput(example)
+    setShowTemplates(false)
+    setShowRecommendation(false)
+  }
 
   const handleStart = () => {
     const item = input.trim()
@@ -98,6 +106,42 @@ export default function HomePage() {
                 {ex}
               </button>
             ))}
+          </div>
+
+          {/* 업종별 템플릿 */}
+          <div className="mt-3">
+            <button
+              onClick={() => setShowTemplates(!showTemplates)}
+              className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+            >
+              <LayoutTemplate className="w-3.5 h-3.5" />
+              업종별 템플릿에서 선택
+            </button>
+            {showTemplates && (
+              <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 animate-fade-in">
+                {INDUSTRY_TEMPLATES.map((tmpl) => (
+                  <div key={tmpl.id} className="group">
+                    <div className="p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="text-base">{tmpl.icon}</span>
+                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{tmpl.name}</span>
+                      </div>
+                      <div className="space-y-1">
+                        {tmpl.examples.map((ex) => (
+                          <button
+                            key={ex}
+                            onClick={() => handleTemplateSelect(tmpl, ex)}
+                            className="block w-full text-left text-[11px] text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 truncate transition-colors"
+                          >
+                            {ex}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 소스 자료 업로드 (NotebookLM 스타일) */}
