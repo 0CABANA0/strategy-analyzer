@@ -354,3 +354,25 @@ export const FRAMEWORK_IDS: string[] = Object.keys(FRAMEWORKS)
 export function getFrameworksBySection(sectionNumber: number): FrameworkDefinition[] {
   return Object.values(FRAMEWORKS).filter((f) => f.section === sectionNumber)
 }
+
+/** 커스텀 프레임워크를 FRAMEWORKS 객체에 동적 등록 (런타임) */
+export function registerCustomFramework(fw: {
+  id: string
+  name: string
+  fullName: string
+  section: number
+  description: string
+  fields: Record<string, import('../types').FieldDef>
+}): void {
+  if (FRAMEWORKS[fw.id]) return // 이미 등록됨
+  FRAMEWORKS[fw.id] = {
+    id: fw.id as import('../types').FrameworkId,
+    name: fw.name,
+    fullName: fw.fullName,
+    section: fw.section,
+    description: fw.description,
+    icon: 'Puzzle',
+    color: 'gray',
+    fields: fw.fields,
+  }
+}

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, History, Settings, FileText, Sun, Moon, Menu, Shield, LogOut, LucideIcon } from 'lucide-react'
+import { Home, History, Settings, FileText, Sun, Moon, Menu, Shield, LogOut, Users, LucideIcon } from 'lucide-react'
 import AppIcon from '../common/AppIcon'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { useTheme } from '../../hooks/useTheme'
@@ -23,6 +23,7 @@ export default function Header() {
   const navItems: NavItem[] = [
     { to: '/', icon: Home, label: '홈' },
     { to: '/history', icon: History, label: '히스토리' },
+    { to: '/team', icon: Users, label: '팀' },
     { to: '/settings', icon: Settings, label: '설정' },
     ...(isAdmin ? [{ to: '/admin', icon: Shield, label: '관리자' }] as NavItem[] : []),
   ]

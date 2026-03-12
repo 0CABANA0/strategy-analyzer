@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 import ConfirmModal from '../components/common/ConfirmModal'
 import SearchSortBar from '../components/history/SearchSortBar'
 import DocumentList from '../components/history/DocumentList'
-import { Clock, Trash2, Loader2 } from 'lucide-react'
+import { Clock, Trash2, Loader2, GitCompare } from 'lucide-react'
 import type { DocumentMeta, StrategyDocument } from '../types'
 
 type SortKey = 'date' | 'name'
@@ -174,13 +174,27 @@ export default function HistoryPage() {
                 </button>
                 <span className="text-primary-700 dark:text-primary-300 font-medium">{selected.size}개 선택됨</span>
               </div>
-              <button
-                onClick={handleBulkDelete}
-                className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-md transition-colors"
-              >
-                <Trash2 className="w-3 h-3" />
-                삭제
-              </button>
+              <div className="flex items-center gap-1.5">
+                {selected.size === 2 && (
+                  <button
+                    onClick={() => {
+                      const ids = [...selected]
+                      navigate(`/compare?a=${ids[0]}&b=${ids[1]}`)
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-md transition-colors"
+                  >
+                    <GitCompare className="w-3 h-3" />
+                    비교
+                  </button>
+                )}
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-md transition-colors"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  삭제
+                </button>
+              </div>
             </div>
           )}
 

@@ -1,8 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, lazy, Suspense } from 'react'
 import { FRAMEWORKS } from '../../data/frameworkDefinitions'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { useAiGeneration } from '../../hooks/useAiGeneration'
-import { Sparkles, RotateCcw, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Star, ThumbsUp, X, Clock } from 'lucide-react'
+import { Sparkles, RotateCcw, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Star, ThumbsUp, X, Clock, ArrowLeftRight } from 'lucide-react'
+
+const ModelCompareModal = lazy(() => import('./ModelCompareModal'))
 import { getRecommendationInfo } from '../../utils/recommendation'
 import FrameworkCardSkeleton from './FrameworkCardSkeleton'
 
@@ -29,9 +31,10 @@ interface FrameworkCardProps {
 export default function FrameworkCard({ frameworkId, children }: FrameworkCardProps) {
   const fw = FRAMEWORKS[frameworkId]
   const { state, clearFramework } = useStrategy()
-  const { generate, cancel, elapsedMs, lastDurations, generatingSet } = useAiGeneration()
+  const { generate, cancel, elapsedMs, lastDurations, generatingSet, streamingText } = useAiGeneration()
   const fState = state?.frameworks[frameworkId]
   const [collapsed, setCollapsed] = useState(false)
+  const [showCompare, setShowCompare] = useState(false)
 
   if (!fw) return null
 
@@ -56,7 +59,7 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
   }
 
   return (
-    <div className={`rounded-xl border-2 transition-colors ${statusColors[status]}`}>
+    <div data-framework-id={frameworkId} className={`rounded-xl border-2 transition-colors ${statusColors[status]}`} tabIndex={-1}>
       {/* 헤더 */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
         <button
@@ -116,13 +119,22 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
               취소
             </button>
           ) : (
-            <button
-              onClick={handleGenerate}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-primary-600 text-white hover:bg-primary-700"
-            >
-              <Sparkles className="w-3 h-3" />
-              AI 생성
-            </button>
+            <>
+              <button
+                onClick={() => setShowCompare(true)}
+                className="p-1.5 text-gray-400 hover:text-primary-500 rounded-md hover:bg-primary-50 transition-colors dark:text-gray-500 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
+                title="모델 A/B 비교"
+              >
+                <ArrowLeftRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleGenerate}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-primary-600 text-white hover:bg-primary-700"
+              >
+                <Sparkles className="w-3 h-3" />
+                AI 생성
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -155,9 +167,24 @@ export default function FrameworkCard({ frameworkId, children }: FrameworkCardPr
             </div>
           )}
 
-          {status === 'generating' && <FrameworkCardSkeleton />}
+          {status === 'generating' && streamingText != null && generatingSet.has(frameworkId) && (
+            <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg max-h-60 overflow-auto">
+              <pre className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap font-mono leading-relaxed">
+                {streamingText || '⏳ 응답 대기 중...'}
+                <span className="inline-block w-1.5 h-3.5 bg-primary-500 animate-pulse ml-0.5 align-text-bottom" />
+              </pre>
+            </div>
+          )}
+          {status === 'generating' && streamingText == null && <FrameworkCardSkeleton />}
           {(status === 'completed' || status === 'error') && children}
         </div>
+      )}
+
+      {/* A/B 비교 모달 */}
+      {showCompare && (
+        <Suspense fallback={null}>
+          <ModelCompareModal frameworkId={frameworkId} onClose={() => setShowCompare(false)} />
+        </Suspense>
       )}
     </div>
   )

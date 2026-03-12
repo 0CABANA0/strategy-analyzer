@@ -59,6 +59,33 @@ export const DEFAULT_TEMPLATE: PptxTemplate = {
   },
 }
 
+/** 내장 템플릿: 다크 (16:9) — 어두운 배경 + 밝은 텍스트 */
+export const DARK_TEMPLATE: PptxTemplate = {
+  id: 'dark-16x9',
+  name: '다크 (16:9)',
+  isDefault: false,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  colors: {
+    primary: '818CF8',
+    primaryDark: '111827',
+    secondary: 'F59E0B',
+    accent: 'A78BFA',
+    text: 'E5E7EB',
+    textLight: '9CA3AF',
+    tableHeader: '4F46E5',
+    tableStripe: '1F2937',
+    white: '111827',
+    border: '374151',
+  },
+  fonts: {
+    title: 'Pretendard ExtraBold',
+    body: 'Pretendard Medium',
+  },
+  layout: {
+    type: 'LAYOUT_16x9',
+  },
+}
+
 /** 내장 템플릿: 기본 (16:9) — 이전 기본값 */
 export const BUILTIN_TEMPLATE: PptxTemplate = {
   id: 'builtin-16x9',

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStrategy } from '../hooks/useStrategyDocument'
 import { useWizard } from '../hooks/useWizard'
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import WizardShell from '../components/wizard/WizardShell'
 import SectionContainer from '../components/frameworks/SectionContainer'
 
@@ -9,6 +10,7 @@ export default function AnalyzerPage() {
   const { state } = useStrategy()
   const { currentStep } = useWizard()
   const navigate = useNavigate()
+  useKeyboardShortcuts()
 
   // 전략분석 아이템이 없으면 홈으로
   useEffect(() => {

@@ -26,6 +26,9 @@ const AuthConfirmPage = lazy(() => import('./pages/AuthConfirmPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
+const SharedDocumentPage = lazy(() => import('./pages/SharedDocumentPage'))
+const ComparePage = lazy(() => import('./pages/ComparePage'))
+const TeamPage = lazy(() => import('./pages/TeamPage'))
 
 function PageLoader() {
   return (
@@ -83,6 +86,7 @@ export default function App() {
                       <Route path="/auth/confirm" element={<AuthConfirmPage />} />
                       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+                      <Route path="/shared/:shareId" element={<SharedDocumentPage />} />
 
                       {/* 보호 라우트 (Header 포함) */}
                       <Route element={<ProtectedLayout />}>
@@ -90,6 +94,8 @@ export default function App() {
                         <Route path="/analyzer" element={<AnalyzerPage />} />
                         <Route path="/preview" element={<PreviewPage />} />
                         <Route path="/history" element={<HistoryPage />} />
+                        <Route path="/compare" element={<ComparePage />} />
+                        <Route path="/team" element={<TeamPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                       </Route>
 

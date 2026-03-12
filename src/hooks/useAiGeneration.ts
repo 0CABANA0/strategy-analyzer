@@ -3,7 +3,8 @@ import { useStrategy } from './useStrategyDocument'
 import { useSettings } from './useSettings'
 import { useAuth } from './useAuth'
 import { callAI, parseJsonResponse } from '../services/aiService'
-import { promptTemplates } from '../services/prompts'
+import { callOpenRouterStream } from '../services/openrouterStream'
+import { promptTemplates, ensureCustomPrompts } from '../services/prompts'
 import { buildSourceContext } from '../services/prompts/common'
 import { sampleData } from '../data/sampleData'
 import { withRetry } from '../utils/retry'
@@ -22,6 +23,11 @@ interface UseAiGenerationReturn {
   elapsedMs: number
   /** 최근 완료된 프레임워크별 소요 시간 (세션 한정) */
   lastDurations: ReadonlyMap<string, number>
+  /** 스트리밍 중인 텍스트 (완료 후 null) */
+  streamingText: string | null
+  /** 스트리밍 모드 토글 */
+  streamingEnabled: boolean
+  setStreamingEnabled: (enabled: boolean) => void
 }
 
 export function useAiGeneration(): UseAiGenerationReturn {
@@ -44,6 +50,10 @@ export function useAiGeneration(): UseAiGenerationReturn {
   const startTimeRef = useRef<number>(0)
   const [elapsedMs, setElapsedMs] = useState(0)
   const lastDurationsRef = useRef(new Map<string, number>())
+
+  // 스트리밍
+  const [streamingText, setStreamingText] = useState<string | null>(null)
+  const [streamingEnabled, setStreamingEnabled] = useState(false)
 
   const addGenerating = (id: string) => {
     generatingRef.current.add(id)
@@ -84,6 +94,8 @@ export function useAiGeneration(): UseAiGenerationReturn {
     startTimeRef.current = genStartTime
 
     try {
+      // 커스텀 프레임워크 프롬프트 동적 등록
+      ensureCustomPrompts()
       const template = promptTemplates[frameworkId as keyof typeof promptTemplates]
       if (!template) throw new Error(`프롬프트 템플릿이 없습니다: ${frameworkId}`)
 
@@ -122,17 +134,50 @@ export function useAiGeneration(): UseAiGenerationReturn {
       const controller = new AbortController()
       abortRef.current = controller
 
-      const responseText = await withRetry(() =>
-        callAI({
-          apiKey,
-          model: settings.model,
-          system,
-          user: userContent,
-          temperature: settings.temperature,
-          maxTokens: settings.maxTokens,
-          signal: controller.signal,
+      let responseText: string
+
+      if (streamingEnabled) {
+        // 스트리밍 모드: 실시간 텍스트 표시 후 완료 시 JSON 파싱
+        setStreamingText('')
+        responseText = await new Promise<string>((resolve, reject) => {
+          callOpenRouterStream(
+            {
+              apiKey,
+              model: settings.model,
+              system,
+              user: userContent,
+              temperature: settings.temperature,
+              maxTokens: settings.maxTokens,
+              signal: controller.signal,
+            },
+            {
+              onChunk: (text) => setStreamingText(text),
+              onComplete: (text) => {
+                setStreamingText(null)
+                resolve(text)
+              },
+              onError: (err) => {
+                setStreamingText(null)
+                reject(err)
+              },
+            },
+          ).catch(reject)
         })
-      )
+      } else {
+        // 일반 모드: 전체 응답 대기
+        responseText = await withRetry(() =>
+          callAI({
+            apiKey,
+            model: settings.model,
+            system,
+            user: userContent,
+            temperature: settings.temperature,
+            maxTokens: settings.maxTokens,
+            signal: controller.signal,
+          })
+        )
+      }
+
       const data = parseJsonResponse(responseText)
       setFrameworkData(frameworkId, data as unknown as FrameworkData)
 
@@ -188,5 +233,8 @@ export function useAiGeneration(): UseAiGenerationReturn {
     isGeneratingAny, currentGenerating, generatingSet,
     elapsedMs,
     lastDurations: lastDurationsRef.current,
+    streamingText,
+    streamingEnabled,
+    setStreamingEnabled,
   }
 }

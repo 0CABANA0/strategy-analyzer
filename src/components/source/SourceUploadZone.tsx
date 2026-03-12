@@ -1,9 +1,11 @@
-/** 소스 자료 업로드 영역 — 드래그앤드롭 + 파일선택 + URL 입력 */
+/** 소스 자료 업로드 영역 — 드래그앤드롭 + 파일선택 + URL 입력 + AI 분석 */
 import { useState, useRef, useCallback } from 'react'
-import { Upload, Link2, X, FileText, Image, Globe, Loader2, Plus } from 'lucide-react'
+import { Upload, Link2, X, FileText, Image, Globe, Loader2, Plus, Sparkles, CheckCircle2 } from 'lucide-react'
 import { useStrategy } from '../../hooks/useStrategyDocument'
+import { useSettings } from '../../hooks/useSettings'
 import { useToast } from '../../hooks/useToast'
 import { processFile, createUrlSource, formatFileSize } from '../../utils/sourceProcessor'
+import { analyzeSource, type SourceSummary } from '../../services/sourceAnalyzer'
 import { MAX_SOURCES } from '../../types/source'
 import type { SourceMaterial } from '../../types/source'
 
@@ -15,6 +17,7 @@ const TYPE_ICONS: Record<SourceMaterial['type'], React.ReactNode> = {
 
 export default function SourceUploadZone() {
   const { state, addSource, removeSource } = useStrategy()
+  const { apiKey, settings, hasApiKey } = useSettings()
   const toast = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -22,6 +25,8 @@ export default function SourceUploadZone() {
   const [showUrlInput, setShowUrlInput] = useState(false)
   const [urlValue, setUrlValue] = useState('')
   const [urlDesc, setUrlDesc] = useState('')
+  const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set())
+  const [analyzedSummaries, setAnalyzedSummaries] = useState<Map<string, SourceSummary>>(new Map())
 
   const sources = state.sourceMaterials ?? []
   const isMaxed = sources.length >= MAX_SOURCES
@@ -75,8 +80,32 @@ export default function SourceUploadZone() {
     setShowUrlInput(false)
   }
 
+  const handleAnalyze = useCallback(async (source: SourceMaterial) => {
+    if (!hasApiKey() || source.type === 'image') return
+
+    setAnalyzingIds((prev) => new Set(prev).add(source.id))
+    try {
+      const summary = await analyzeSource(source, apiKey, settings.model)
+      setAnalyzedSummaries((prev) => new Map(prev).set(source.id, summary))
+      toast.success(`"${source.name}" AI 분석 완료`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'AI 분석 실패')
+    } finally {
+      setAnalyzingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(source.id)
+        return next
+      })
+    }
+  }, [apiKey, settings.model, hasApiKey, toast])
+
   const handleRemove = (id: string, name: string) => {
     removeSource(id)
+    setAnalyzedSummaries((prev) => {
+      const next = new Map(prev)
+      next.delete(id)
+      return next
+    })
     toast.success(`"${name}" 제거됨`)
   }
 
@@ -131,12 +160,41 @@ export default function SourceUploadZone() {
               {s.size && (
                 <span className="text-gray-400 text-[10px]">{formatFileSize(s.size)}</span>
               )}
+              {/* AI 분석 버튼 (텍스트/URL만) */}
+              {s.type !== 'image' && hasApiKey() && (
+                analyzedSummaries.has(s.id) ? (
+                  <span title="분석 완료"><CheckCircle2 className="w-3 h-3 text-green-500" /></span>
+                ) : analyzingIds.has(s.id) ? (
+                  <Loader2 className="w-3 h-3 text-primary-500 animate-spin" />
+                ) : (
+                  <button
+                    onClick={() => handleAnalyze(s)}
+                    className="p-0.5 text-gray-400 hover:text-primary-500 opacity-0 group-hover:opacity-100 transition-all"
+                    title="AI 분석"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                  </button>
+                )
+              )}
               <button
                 onClick={() => handleRemove(s.id, s.name)}
                 className="p-0.5 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
               >
                 <X className="w-3 h-3" />
               </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 분석 결과 요약 */}
+      {analyzedSummaries.size > 0 && (
+        <div className="p-2 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg space-y-1.5">
+          <div className="text-[10px] font-medium text-primary-600 dark:text-primary-400">AI 분석 결과</div>
+          {[...analyzedSummaries.entries()].map(([id, s]) => (
+            <div key={id} className="text-xs text-gray-600 dark:text-gray-400">
+              <span className="font-medium text-gray-700 dark:text-gray-300">{s.keywords.slice(0, 5).join(' · ')}</span>
+              <span className="text-[10px] ml-1">— {s.summary.slice(0, 80)}{s.summary.length > 80 ? '…' : ''}</span>
             </div>
           ))}
         </div>

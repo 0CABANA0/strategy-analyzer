@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useState, lazy, Suspense, useMemo } from 'react'
 import ErrorBoundary from '../common/ErrorBoundary'
 import FawAnalysis from './FawAnalysis'
 import ThreeCAnalysis from './ThreeCAnalysis'
@@ -22,10 +22,15 @@ import WbsSchedule from './WbsSchedule'
 import KpiDashboard from './KpiDashboard'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { SECTIONS } from '../../data/sectionDefinitions'
-import { FRAMEWORKS } from '../../data/frameworkDefinitions'
-import { Sparkles, Loader2, Lightbulb } from 'lucide-react'
+import { FRAMEWORKS, registerCustomFramework } from '../../data/frameworkDefinitions'
+import DynamicFramework from './DynamicFramework'
+import { Sparkles, Loader2, Lightbulb, Zap, GripVertical, RotateCcw, PlusCircle } from 'lucide-react'
 import { useAiGeneration } from '../../hooks/useAiGeneration'
 import { useSettings } from '../../hooks/useSettings'
+import { useFrameworkOrder } from '../../hooks/useFrameworkOrder'
+import { getCustomFrameworks, type CustomFramework } from '../../utils/customFrameworks'
+
+const CustomFrameworkEditor = lazy(() => import('./CustomFrameworkEditor'))
 import GenerationProgress from '../common/GenerationProgress'
 import { getEstimatedTotalDuration } from '../../utils/generationMetrics'
 
@@ -68,13 +73,39 @@ interface SectionContainerProps {
 
 export default function SectionContainer({ stepNumber }: SectionContainerProps) {
   const { state } = useStrategy()
-  const { generateAll, isGeneratingAny, currentGenerating, generatingSet, elapsedMs } = useAiGeneration()
+  const { generateAll, isGeneratingAny, currentGenerating, generatingSet, elapsedMs, streamingEnabled, setStreamingEnabled } = useAiGeneration()
   const { settings } = useSettings()
   const section = SECTIONS.find((s) => s.number === stepNumber)
 
+  const [showCustomEditor, setShowCustomEditor] = useState(false)
+  const [customVersion, setCustomVersion] = useState(0)
+
+  // 이 섹션에 속하는 커스텀 프레임워크 (FRAMEWORKS에 동적 등록)
+  const customFrameworks = useMemo(
+    () => {
+      const cfs = getCustomFrameworks().filter((cf) => cf.section === stepNumber)
+      for (const cf of cfs) registerCustomFramework(cf)
+      return cfs
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [stepNumber, customVersion]
+  )
+
+  const allFrameworkIds = useMemo(() => {
+    const base = section?.frameworks || []
+    const customIds = customFrameworks.map((cf) => cf.id)
+    return [...base, ...customIds]
+  }, [section?.frameworks, customFrameworks])
+
+  const { order: frameworkOrder, reorder, resetOrder, isCustomOrder } = useFrameworkOrder(
+    section?.id || '', allFrameworkIds
+  )
+  const dragItemRef = useRef<number | null>(null)
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+
   if (!section) return null
 
-  const frameworkIds = section.frameworks
+  const frameworkIds = frameworkOrder
 
   // 현재 섹션에서 생성 중인 프레임워크 수 계산
   const sectionGeneratingIds = frameworkIds.filter((id: string) => generatingSet.has(id))
@@ -122,6 +153,18 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
       {/* 전체 생성 버튼 + 진행 상황 */}
       <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
         <button
+          onClick={() => setStreamingEnabled(!streamingEnabled)}
+          className={`flex items-center gap-1 px-3 py-2 text-xs font-medium rounded-lg border transition-colors ${
+            streamingEnabled
+              ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 border-primary-200 dark:border-primary-800'
+              : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+          }`}
+          title="스트리밍 모드: AI 응답을 실시간으로 표시"
+        >
+          <Zap className="w-3.5 h-3.5" />
+          스트리밍
+        </button>
+        <button
           onClick={() => generateAll(frameworkIds)}
           disabled={isGeneratingAny}
           className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
@@ -154,17 +197,70 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
       </div>
 
       {/* 프레임워크 카드 그리드 */}
+      {isCustomOrder && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={resetOrder}
+            className="flex items-center gap-1 px-2 py-1 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            title="기본 순서로 복원"
+          >
+            <RotateCcw className="w-3 h-3" />
+            순서 초기화
+          </button>
+        </div>
+      )}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        {frameworkIds.map((fId: string) => {
+        {frameworkIds.map((fId: string, idx: number) => {
           const Component = COMPONENT_MAP[fId]
-          if (!Component) return null
+          const customFw = !Component ? customFrameworks.find((cf: CustomFramework) => cf.id === fId) : null
+          if (!Component && !customFw) return null
           return (
-            <ErrorBoundary key={fId}>
-              <Component />
-            </ErrorBoundary>
+            <div
+              key={fId}
+              draggable
+              onDragStart={() => { dragItemRef.current = idx }}
+              onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx) }}
+              onDragLeave={() => setDragOverIdx(null)}
+              onDrop={() => {
+                if (dragItemRef.current !== null && dragItemRef.current !== idx) {
+                  reorder(dragItemRef.current, idx)
+                }
+                dragItemRef.current = null
+                setDragOverIdx(null)
+              }}
+              onDragEnd={() => { dragItemRef.current = null; setDragOverIdx(null) }}
+              className={`relative group/drag ${dragOverIdx === idx ? 'ring-2 ring-primary-400 ring-offset-2 dark:ring-offset-gray-900 rounded-xl' : ''}`}
+            >
+              <div className="absolute -left-1 top-3 opacity-0 group-hover/drag:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10">
+                <GripVertical className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+              </div>
+              <ErrorBoundary>
+                {Component ? <Component /> : <DynamicFramework framework={customFw!} />}
+              </ErrorBoundary>
+            </div>
           )
         })}
       </div>
+
+      {/* 커스텀 프레임워크 추가 버튼 */}
+      <div className="mt-4 flex justify-center">
+        <button
+          onClick={() => setShowCustomEditor(true)}
+          className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 border border-dashed border-gray-300 dark:border-gray-600 hover:border-primary-400 rounded-lg transition-colors"
+        >
+          <PlusCircle className="w-3.5 h-3.5" />
+          커스텀 프레임워크 추가
+        </button>
+      </div>
+
+      {showCustomEditor && (
+        <Suspense fallback={null}>
+          <CustomFrameworkEditor
+            onClose={() => setShowCustomEditor(false)}
+            onSaved={() => setCustomVersion((v) => v + 1)}
+          />
+        </Suspense>
+      )}
     </div>
   )
 }

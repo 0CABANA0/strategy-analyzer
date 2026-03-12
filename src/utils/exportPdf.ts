@@ -5,16 +5,23 @@
  */
 import type { StrategyDocument } from '../types/document'
 
-export async function exportPdf(state: StrategyDocument): Promise<void> {
+export type PdfTheme = 'light' | 'dark'
+
+export async function exportPdf(state: StrategyDocument, theme: PdfTheme = 'light'): Promise<void> {
   const element = document.getElementById('document-preview')
   if (!element) throw new Error('미리보기 요소를 찾을 수 없습니다.')
 
   const html2pdf = (await import('html2pdf.js')).default
   const date = new Date().toISOString().split('T')[0]
 
-  // 다크 모드 임시 비활성화 (PDF는 항상 라이트 모드로 출력)
   const isDark = document.documentElement.classList.contains('dark')
-  if (isDark) document.documentElement.classList.remove('dark')
+
+  // 테마에 맞게 다크 모드 클래스 임시 조정
+  if (theme === 'light' && isDark) {
+    document.documentElement.classList.remove('dark')
+  } else if (theme === 'dark' && !isDark) {
+    document.documentElement.classList.add('dark')
+  }
 
   try {
     await html2pdf().from(element).set({
@@ -27,7 +34,11 @@ export async function exportPdf(state: StrategyDocument): Promise<void> {
       ...({ pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } }),
     }).save()
   } finally {
-    // 다크 모드 복원 (에러 발생 시에도 보장)
-    if (isDark) document.documentElement.classList.add('dark')
+    // 원래 상태 복원 (에러 발생 시에도 보장)
+    if (isDark && !document.documentElement.classList.contains('dark')) {
+      document.documentElement.classList.add('dark')
+    } else if (!isDark && document.documentElement.classList.contains('dark')) {
+      document.documentElement.classList.remove('dark')
+    }
   }
 }

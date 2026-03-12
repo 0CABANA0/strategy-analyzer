@@ -1,11 +1,11 @@
 /** PPTX 템플릿 저장/관리 + PPTX 테마 자동 추출 */
-import { DEFAULT_TEMPLATE, BUILTIN_TEMPLATE } from '../types/pptxTemplate'
+import { DEFAULT_TEMPLATE, BUILTIN_TEMPLATE, DARK_TEMPLATE } from '../types/pptxTemplate'
 import type { PptxTemplate } from '../types/pptxTemplate'
 
 const STORAGE_KEY = 'strategy-analyzer:pptx-templates'
 const SELECTED_KEY = 'strategy-analyzer:pptx-template-selected'
 
-const BUILTIN_TEMPLATES: PptxTemplate[] = [DEFAULT_TEMPLATE, BUILTIN_TEMPLATE]
+const BUILTIN_TEMPLATES: PptxTemplate[] = [DEFAULT_TEMPLATE, BUILTIN_TEMPLATE, DARK_TEMPLATE]
 
 // ── 저장소 CRUD ──
 
