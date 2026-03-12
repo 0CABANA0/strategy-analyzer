@@ -22,7 +22,6 @@
 - [x] 약어 풀네임 + 프레임워크 강점 설명 — 학습형 PRD 생성
 - [x] 전략 일관성 검증 강화 — 개선 이력(Before/After) + PRD 하이라이트 + 이슈 추적 + 되돌리기
 - [x] AI 분석 시간 추적 — 예상 시간 표시 + 경과 시간 카운터 + 메트릭 기록
-- [x] 테스트 196개 통과
 
 ### 12개 추가 기능 (2026-03-12 일괄 구현)
 
@@ -39,11 +38,26 @@
 - [x] #11 커스텀 프레임워크 — 사용자 정의 이름/필드/프롬프트 프레임워크 추가
 - [x] #12 팀 워크스페이스 — 팀 생성 + 초대 + 공동 문서 목록
 
+### 최적화 + UX 강화 (2026-03-12)
+
+- [x] PDF A4 보고서 스타일 적용 — Skywork Print-First 원칙 (orphans/widows/페이지 흐름)
+- [x] 프레임워크 컴포넌트 lazy loading — AnalyzerPage 청크 46% 감소 (51→28KB)
+- [x] 온보딩 투어 — 첫 방문 4단계 가이드 (사업아이템→섹션탭→AI생성→미리보기)
+- [x] 업종별 템플릿 — 6개 업종 × 4개 예시 = 24개 템플릿
+- [x] AI 코칭 — 프레임워크별 점수+강점+개선제안+누락관점
+- [x] 자동 저장 표시 — Header에 saving/saved/error 상태 인디케이터
+- [x] 프레임워크 검색 — 이름/설명 실시간 필터링
+- [x] chunkSizeWarningLimit 1000 (html2pdf 이미 동적 import)
+- [x] 테스트 229개 통과 (32개 파일)
+
 ## 알려진 이슈
 
-- Supabase 마이그레이션 미적용: `shared_documents`, `teams`, `team_members`, `team_documents` 테이블 + RLS 정책 필요 (#5, #12)
+- Supabase 마이그레이션 적용 완료: `shared_documents`, `teams`, `team_members`, `team_documents` 테이블 + RLS 정책
 
 ## 향후 개선 후보 (미확정)
 
-- Supabase 마이그레이션 SQL 작성 및 적용
-- 12개 신규 기능에 대한 테스트 추가 (안정화 단계)
+- 다국어(i18n) — 영어 지원
+- PWA/오프라인 — Service Worker + 오프라인 편집
+- 벤치마크 비교 — 업종별 평균 대비 포지션 시각화
+- 프레임워크 상관관계 매트릭스 — 인사이트 교차 분석 히트맵
+- 실시간 협업 — Y.js/Liveblocks 기반 동시 편집

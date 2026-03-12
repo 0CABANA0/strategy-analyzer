@@ -30,3 +30,21 @@
 - FRAMEWORKS 객체와 promptTemplates 양쪽 모두에 등록해야 AI 생성이 동작
 - `registerCustomFramework()` + `ensureCustomPrompts()` 두 함수를 분리하여 관리
 - `ensureCustomPrompts()`는 generate 호출 직전에 실행 (lazy initialization)
+
+## 2026-03-12: callAI는 AiCallParams 객체 1개를 받음
+
+- **증상**: `callAI(system, user, apiKey, model)` → TS2554 인수 개수 에러
+- **원인**: callAI 시그니처는 `callAI(params: AiCallParams)` — 객체 1개
+- **해결**: `callAI({ apiKey, model, system, user })` 형태로 호출
+
+## 2026-03-12: Settings vs SettingsContextValue 구분
+
+- `Settings` 타입: `{ model, language, temperature, maxTokens }` — apiKey 없음
+- `SettingsContextValue`에 `apiKey`, `browserApiKey`, `hasApiKey()` 존재
+- 훅 사용: `const { settings, apiKey } = useSettings()` — settings.apiKey 아님
+
+## 2026-03-12: CSS box-shadow 오버레이 트릭
+
+- 하이라이트 영역 외 전체를 어둡게: `box-shadow: 0 0 0 9999px rgba(0,0,0,0.4)`
+- 별도 오버레이 DOM 불필요, 하이라이트 요소 하나에 적용
+- 온보딩 투어, 스포트라이트 등에 활용
