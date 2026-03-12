@@ -98,10 +98,20 @@ body {
   animation: slideInLeft 0.25s ease-out;
 }
 
-/* 프린트 스타일 — 브라우저 인쇄(Ctrl+P) + html2pdf.js 공용 */
+/* ─── A4 인쇄용 공식 보고서 스타일 (Skywork Print-First) ─── */
+
+/*
+ * 핵심 원칙 (Skywork A4 Report):
+ * 1. 페이지 흐름(Page Flow) — 앞뒤 페이지 문맥이 자연스럽게 이어짐
+ * 2. 콘텐츠 그룹핑 — 제목+본문, 표+설명이 같은 페이지에 묶임
+ * 3. 고아줄/과부줄 방지 — orphans/widows CSS 제어
+ * 4. 균일 밀도 — 페이지별 정보량 편차 최소화
+ * 5. 보고서형 서체·여백 — 슬라이드/웹이 아닌 인쇄 문서
+ */
+
 @page {
-  size: A4;
-  margin: 15mm 12mm 20mm 12mm;
+  size: A4 portrait;
+  margin: 20mm 15mm 25mm 15mm;
 }
 
 @media print {
@@ -113,7 +123,8 @@ body {
     color: #1e293b !important;
     margin: 0 !important;
     padding: 0 !important;
-    font-size: 12pt !important;
+    font-size: 11pt !important;
+    line-height: 1.7 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -121,7 +132,7 @@ body {
   /* 다크 모드 무력화 — 항상 라이트 모드로 인쇄 */
   .dark { color-scheme: light; }
 
-  /* 미리보기 컨테이너 */
+  /* ── 미리보기 컨테이너 ── */
   #document-preview {
     border: none !important;
     box-shadow: none !important;
@@ -132,50 +143,193 @@ body {
     background: white !important;
   }
 
-  /* 색상 보존 (배경색, 테이블 줄무늬 등) */
+  /* ── 색상 보존 (배경색, 테이블 줄무늬 등) ── */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* 텍스트 강제 라이트 모드 색상 */
-  #document-preview h1,
-  #document-preview h2,
-  #document-preview h3 { color: #111827 !important; }
+  /* ── 보고서형 타이포그래피 ── */
+  #document-preview h1 {
+    color: #111827 !important;
+    font-size: 20pt !important;
+    font-weight: 700 !important;
+    margin-bottom: 6pt !important;
+    line-height: 1.3 !important;
+  }
+  #document-preview h2 {
+    color: #111827 !important;
+    font-size: 14pt !important;
+    font-weight: 700 !important;
+    margin-top: 18pt !important;
+    margin-bottom: 6pt !important;
+    line-height: 1.4 !important;
+    padding-bottom: 4pt !important;
+    border-bottom: 1.5pt solid #3b82f6 !important;
+  }
+  #document-preview h3 {
+    color: #111827 !important;
+    font-size: 12pt !important;
+    font-weight: 600 !important;
+    margin-top: 12pt !important;
+    margin-bottom: 4pt !important;
+    line-height: 1.4 !important;
+  }
+  #document-preview h4 {
+    color: #374151 !important;
+    font-size: 10.5pt !important;
+    font-weight: 600 !important;
+    margin-top: 8pt !important;
+    margin-bottom: 3pt !important;
+  }
   #document-preview p,
-  #document-preview li,
+  #document-preview li {
+    color: #374151 !important;
+    font-size: 10.5pt !important;
+    line-height: 1.7 !important;
+  }
   #document-preview td,
   #document-preview span { color: #374151 !important; }
   #document-preview th { color: #1f2937 !important; }
 
-  /* 테이블 인쇄 최적화 */
+  /* ── 본문 문단 스타일 — 보고서형 ── */
+  #document-preview p {
+    text-align: justify !important;
+    word-break: keep-all !important;
+    orphans: 3 !important;
+    widows: 3 !important;
+    margin-bottom: 6pt !important;
+  }
+
+  /* 리스트: 간결하되 보고서 흐름 유지 */
+  #document-preview ul,
+  #document-preview ol {
+    margin-top: 4pt !important;
+    margin-bottom: 8pt !important;
+    padding-left: 18pt !important;
+  }
+  #document-preview li {
+    margin-bottom: 2pt !important;
+    orphans: 2 !important;
+    widows: 2 !important;
+  }
+
+  /* ── 테이블 인쇄 최적화 ── */
   #document-preview table {
     border-collapse: collapse !important;
-    border: 2px solid #d1d5db !important;
+    border: 1.5pt solid #d1d5db !important;
+    width: 100% !important;
+    font-size: 9.5pt !important;
+    margin-top: 6pt !important;
+    margin-bottom: 10pt !important;
   }
   #document-preview thead { display: table-header-group; }
   #document-preview thead tr { background-color: #e5e7eb !important; }
   #document-preview tbody tr:nth-child(even) { background-color: #f9fafb !important; }
   #document-preview th,
   #document-preview td {
-    border: 1px solid #d1d5db !important;
-    padding: 6px 10px !important;
+    border: 0.75pt solid #d1d5db !important;
+    padding: 5pt 8pt !important;
+    line-height: 1.5 !important;
   }
-  #document-preview th { font-weight: 700 !important; }
+  #document-preview th {
+    font-weight: 700 !important;
+    font-size: 9.5pt !important;
+  }
   #document-preview td:first-child { font-weight: 500 !important; }
 
-  /* 페이지 분할 제어 */
-  h2 { break-after: avoid !important; }
-  h3, h4 { break-after: avoid !important; }
+  /* ── 페이지 분할 제어 (Skywork Page Flow) ── */
+
+  /* 제목(h2/h3/h4) 뒤에서 페이지 분할 금지 — 소제목만 홀로 남는 현상 방지 */
+  h2, h3, h4 { break-after: avoid !important; }
+
+  /* 표, 그림, 카드를 페이지 경계에서 쪼개지 않음 — 콘텐츠 그룹핑 */
   table, figure, .break-inside-avoid { break-inside: avoid !important; }
   tr { break-inside: avoid !important; }
 
-  /* 링크 URL 표시 안 함 */
-  a::after { content: none !important; }
+  /* 섹션(mb-8) 사이 자연스러운 페이지 분할 허용 */
+  #document-preview > div > div { break-before: auto; break-after: auto; }
 
-  /* 애니메이션 제거 */
+  /* 프레임워크 카드 — 가능하면 쪼개지 않되, 너무 길면 허용 */
+  #document-preview [id^="framework-"] {
+    break-inside: avoid !important;
+    margin-bottom: 14pt !important;
+    padding-bottom: 8pt !important;
+    border-bottom: 0.5pt solid #e5e7eb !important;
+  }
+
+  /* 섹션 제목 블록 — 제목+부제+첫 프레임워크가 함께 묶이도록 */
+  #document-preview > div > div > h2 + p {
+    break-after: avoid !important;
+  }
+
+  /* ── 표지 영역(제목+메타) ── */
+  #document-preview > div:first-child {
+    break-after: auto !important;
+    margin-bottom: 20pt !important;
+    padding-bottom: 12pt !important;
+  }
+
+  /* ── 푸터 ── */
+  #document-preview > div:last-child {
+    break-before: avoid !important;
+    margin-top: 16pt !important;
+    padding-top: 8pt !important;
+    border-top: 0.5pt solid #d1d5db !important;
+  }
+
+  /* ── 기타 ── */
+  a::after { content: none !important; }
   * {
     animation: none !important;
     transition: none !important;
   }
+
+  /* 불필요한 장식 요소 최소화 */
+  #document-preview .ring-2,
+  #document-preview .shadow-sm,
+  #document-preview .rounded-xl,
+  #document-preview .rounded-lg {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    ring: none !important;
+  }
+}
+
+/* ── html2pdf.js 전용 스타일 (pdf-exporting 클래스 활성 시) ── */
+.pdf-exporting #document-preview {
+  font-size: 10.5pt !important;
+  line-height: 1.7 !important;
+  color: #1e293b !important;
+  background: white !important;
+}
+
+.pdf-exporting #document-preview h1 {
+  font-size: 20pt !important;
+  line-height: 1.3 !important;
+  margin-bottom: 8pt !important;
+}
+.pdf-exporting #document-preview h2 {
+  font-size: 14pt !important;
+  margin-top: 16pt !important;
+  margin-bottom: 6pt !important;
+}
+.pdf-exporting #document-preview h3 {
+  font-size: 12pt !important;
+  margin-top: 10pt !important;
+}
+.pdf-exporting #document-preview p {
+  text-align: justify !important;
+  word-break: keep-all !important;
+  line-height: 1.7 !important;
+  margin-bottom: 5pt !important;
+}
+.pdf-exporting #document-preview table {
+  font-size: 9pt !important;
+}
+/* 프레임워크 카드 사이 구분선 */
+.pdf-exporting #document-preview [id^="framework-"] {
+  margin-bottom: 12pt !important;
+  padding-bottom: 8pt !important;
+  border-bottom: 0.5pt solid #e5e7eb !important;
 }

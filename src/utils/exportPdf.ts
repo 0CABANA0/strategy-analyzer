@@ -23,18 +23,35 @@ export async function exportPdf(state: StrategyDocument, theme: PdfTheme = 'ligh
     document.documentElement.classList.add('dark')
   }
 
+  // pdf-exporting 클래스 추가 — A4 보고서 타이포그래피 활성화
+  document.documentElement.classList.add('pdf-exporting')
+
   try {
+    // A4 세로 기준: 210×297mm, 보고서 적정 마진 상20/하25/좌우15mm
     await html2pdf().from(element).set({
-      margin: [10, 10, 10, 10],
+      margin: [20, 15, 25, 15],
       filename: `${state.businessItem}_전략PRD_${date}.pdf`,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        scrollY: 0,
+        windowWidth: 794, // A4 가로 210mm ≈ 794px (96dpi)
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      // pagebreak: 패키지 타입에 누락되어 있으나 공식 API에 존재
-      ...({ pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } }),
+      // pagebreak: 페이지 분할 제어 — 제목·표·카드가 페이지 경계에서 끊기지 않도록
+      ...({ pagebreak: {
+        mode: ['avoid-all', 'css', 'legacy'],
+        before: [],
+        after: [],
+        avoid: ['tr', 'h2', 'h3', 'h4', 'table', '[id^="framework-"]'],
+      } }),
     }).save()
   } finally {
-    // 원래 상태 복원 (에러 발생 시에도 보장)
+    // pdf-exporting 클래스 제거
+    document.documentElement.classList.remove('pdf-exporting')
+
+    // 원래 다크 모드 상태 복원 (에러 발생 시에도 보장)
     if (isDark && !document.documentElement.classList.contains('dark')) {
       document.documentElement.classList.add('dark')
     } else if (!isDark && document.documentElement.classList.contains('dark')) {
