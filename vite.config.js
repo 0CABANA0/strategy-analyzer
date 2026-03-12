@@ -25,6 +25,8 @@ export default defineConfig({
     },
   },
   build: {
+    // html2pdf.js(975KB)는 이미 동적 import → 초기 번들 미포함, 경고 억제
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {

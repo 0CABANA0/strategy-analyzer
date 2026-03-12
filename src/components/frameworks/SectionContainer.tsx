@@ -1,25 +1,5 @@
 import React, { useRef, useState, lazy, Suspense, useMemo } from 'react'
 import ErrorBoundary from '../common/ErrorBoundary'
-import FawAnalysis from './FawAnalysis'
-import ThreeCAnalysis from './ThreeCAnalysis'
-import AnsoffMatrix from './AnsoffMatrix'
-import PestAnalysis from './PestAnalysis'
-import FiveForcesAnalysis from './FiveForcesAnalysis'
-import IlcAnalysis from './IlcAnalysis'
-import MarketAnalysis from './MarketAnalysis'
-import CustomerAnalysis from './CustomerAnalysis'
-import CompetitorAnalysis from './CompetitorAnalysis'
-import StrategyCanvas from './StrategyCanvas'
-import ValueChainAnalysis from './ValueChainAnalysis'
-import SevenSAnalysis from './SevenSAnalysis'
-import VrioAnalysis from './VrioAnalysis'
-import SwotAnalysis from './SwotAnalysis'
-import GenericStrategy from './GenericStrategy'
-import StpAnalysis from './StpAnalysis'
-import ErrcGrid from './ErrcGrid'
-import FourPAnalysis from './FourPAnalysis'
-import WbsSchedule from './WbsSchedule'
-import KpiDashboard from './KpiDashboard'
 import { useStrategy } from '../../hooks/useStrategyDocument'
 import { SECTIONS } from '../../data/sectionDefinitions'
 import { FRAMEWORKS, registerCustomFramework } from '../../data/frameworkDefinitions'
@@ -29,6 +9,44 @@ import { useAiGeneration } from '../../hooks/useAiGeneration'
 import { useSettings } from '../../hooks/useSettings'
 import { useFrameworkOrder } from '../../hooks/useFrameworkOrder'
 import { getCustomFrameworks, type CustomFramework } from '../../utils/customFrameworks'
+
+// 20개 프레임워크 컴포넌트 — lazy loading (해당 섹션 진입 시에만 로드)
+const COMPONENT_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
+  faw: lazy(() => import('./FawAnalysis')),
+  threeC: lazy(() => import('./ThreeCAnalysis')),
+  ansoff: lazy(() => import('./AnsoffMatrix')),
+  pest: lazy(() => import('./PestAnalysis')),
+  fiveForces: lazy(() => import('./FiveForcesAnalysis')),
+  ilc: lazy(() => import('./IlcAnalysis')),
+  marketAnalysis: lazy(() => import('./MarketAnalysis')),
+  customerAnalysis: lazy(() => import('./CustomerAnalysis')),
+  competitorAnalysis: lazy(() => import('./CompetitorAnalysis')),
+  strategyCanvas: lazy(() => import('./StrategyCanvas')),
+  valueChain: lazy(() => import('./ValueChainAnalysis')),
+  sevenS: lazy(() => import('./SevenSAnalysis')),
+  vrio: lazy(() => import('./VrioAnalysis')),
+  swot: lazy(() => import('./SwotAnalysis')),
+  genericStrategy: lazy(() => import('./GenericStrategy')),
+  stp: lazy(() => import('./StpAnalysis')),
+  errc: lazy(() => import('./ErrcGrid')),
+  fourP: lazy(() => import('./FourPAnalysis')),
+  wbs: lazy(() => import('./WbsSchedule')),
+  kpi: lazy(() => import('./KpiDashboard')),
+}
+
+// lazy 로딩 중 스켈레톤 표시
+function FrameworkSkeleton() {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 animate-pulse">
+      <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-3" />
+      <div className="h-3 bg-gray-100 dark:bg-gray-700/50 rounded w-2/3 mb-4" />
+      <div className="space-y-2">
+        <div className="h-3 bg-gray-100 dark:bg-gray-700/50 rounded w-full" />
+        <div className="h-3 bg-gray-100 dark:bg-gray-700/50 rounded w-5/6" />
+      </div>
+    </div>
+  )
+}
 
 const CustomFrameworkEditor = lazy(() => import('./CustomFrameworkEditor'))
 import GenerationProgress from '../common/GenerationProgress'
@@ -44,28 +62,7 @@ function formatEstimate(ms: number): string {
   return sec > 0 ? `약 ${min}분 ${sec}초` : `약 ${min}분`
 }
 
-const COMPONENT_MAP: Record<string, React.ComponentType> = {
-  faw: FawAnalysis,
-  threeC: ThreeCAnalysis,
-  ansoff: AnsoffMatrix,
-  pest: PestAnalysis,
-  fiveForces: FiveForcesAnalysis,
-  ilc: IlcAnalysis,
-  marketAnalysis: MarketAnalysis,
-  customerAnalysis: CustomerAnalysis,
-  competitorAnalysis: CompetitorAnalysis,
-  strategyCanvas: StrategyCanvas,
-  valueChain: ValueChainAnalysis,
-  sevenS: SevenSAnalysis,
-  vrio: VrioAnalysis,
-  swot: SwotAnalysis,
-  genericStrategy: GenericStrategy,
-  stp: StpAnalysis,
-  errc: ErrcGrid,
-  fourP: FourPAnalysis,
-  wbs: WbsSchedule,
-  kpi: KpiDashboard,
-}
+// COMPONENT_MAP은 파일 상단에서 lazy()로 정의됨
 
 interface SectionContainerProps {
   stepNumber: number
@@ -235,7 +232,9 @@ export default function SectionContainer({ stepNumber }: SectionContainerProps) 
                 <GripVertical className="w-4 h-4 text-gray-300 dark:text-gray-600" />
               </div>
               <ErrorBoundary>
-                {Component ? <Component /> : <DynamicFramework framework={customFw!} />}
+                <Suspense fallback={<FrameworkSkeleton />}>
+                  {Component ? <Component /> : <DynamicFramework framework={customFw!} />}
+                </Suspense>
               </ErrorBoundary>
             </div>
           )
