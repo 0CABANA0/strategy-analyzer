@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStrategy } from '../hooks/useStrategyDocument'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
@@ -9,8 +9,9 @@ import ScenarioPanel from '../components/scenario/ScenarioPanel'
 import FinancialPanel from '../components/financial/FinancialPanel'
 import TemplateSelector from '../components/pptx/TemplateSelector'
 import FrameworkDAG from '../components/visualization/FrameworkDAG'
+const CorrelationMatrix = lazy(() => import('../components/visualization/CorrelationMatrix'))
 import AnalysisDashboard from '../components/dashboard/AnalysisDashboard'
-import { ArrowLeft, FileText, FileDown, Globe, ShieldCheck, Briefcase, GitBranch, Calculator, Presentation, Network, BarChart3, Link2 } from 'lucide-react'
+import { ArrowLeft, FileText, FileDown, Globe, ShieldCheck, Briefcase, GitBranch, Calculator, Presentation, Network, BarChart3, Link2, Grid3x3 } from 'lucide-react'
 import { exportHtml } from '../utils/exportHtml'
 import { exportMarkdown } from '../utils/exportMarkdown'
 import { exportPdf, type PdfTheme } from '../utils/exportPdf'
@@ -20,11 +21,12 @@ import { useToast } from '../hooks/useToast'
 import { getSelectedTemplate, getSelectedTemplateId } from '../utils/pptxTemplateStore'
 import type { PptxTemplate } from '../types/pptxTemplate'
 
-type AnalysisPanel = 'dashboard' | 'dependency' | 'validation' | 'executive' | 'scenario' | 'financial'
+type AnalysisPanel = 'dashboard' | 'dependency' | 'correlation' | 'validation' | 'executive' | 'scenario' | 'financial'
 
 const PANEL_CONFIG: { key: AnalysisPanel; label: string; icon: React.ReactNode; color: string }[] = [
   { key: 'dashboard', label: '대시보드', icon: <BarChart3 className="w-4 h-4" />, color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-400' },
   { key: 'dependency', label: '의존성 맵', icon: <Network className="w-4 h-4" />, color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400' },
+  { key: 'correlation', label: '상관관계', icon: <Grid3x3 className="w-4 h-4" />, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' },
   { key: 'validation', label: '전략검증', icon: <ShieldCheck className="w-4 h-4" />, color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400' },
   { key: 'executive', label: '요약', icon: <Briefcase className="w-4 h-4" />, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' },
   { key: 'scenario', label: '시나리오', icon: <GitBranch className="w-4 h-4" />, color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400' },
@@ -209,6 +211,11 @@ export default function PreviewPage() {
       <div className="no-print">
         {activePanels.has('dashboard') && <AnalysisDashboard />}
         {activePanels.has('dependency') && <FrameworkDAG />}
+        {activePanels.has('correlation') && (
+          <Suspense fallback={<div className="flex justify-center py-8"><span className="w-5 h-5 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" /></div>}>
+            <CorrelationMatrix />
+          </Suspense>
+        )}
         {activePanels.has('executive') && <ExecutiveSummaryPanel />}
         {activePanels.has('validation') && <ConsistencyPanel onHighlightChange={setHighlightedFrameworks} />}
         {activePanels.has('scenario') && <ScenarioPanel />}
