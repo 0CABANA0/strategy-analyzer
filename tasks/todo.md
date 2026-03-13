@@ -72,10 +72,10 @@
 
 - [x] 프레임워크 상관관계 매트릭스 — 20×20 SVG 히트맵 + 정적/동적 교차 분석
 
-## 알려진 이슈 / 수동 작업 필요
+## 완료된 수동 작업
 
-- [ ] `supabase/migration_strategy_documents_rls.sql` — Supabase Dashboard에서 수동 실행 필요 (strategy_documents + profiles RLS)
-- [ ] `supabase/migration_error_logs.sql` — Supabase Dashboard에서 수동 실행 필요 (error_logs 테이블 생성)
+- [x] `supabase/migration_strategy_documents_rls.sql` — strategy_documents + profiles RLS 적용 완료 (2026-03-13)
+- [x] `supabase/migration_error_logs.sql` — error_logs 테이블 생성 + RLS 적용 완료 (2026-03-13)
 
 ## 향후 개선 후보 (미확정)
 
