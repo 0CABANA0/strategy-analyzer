@@ -23,6 +23,7 @@ MBA 전략 프레임워크 기반. 5단계 위저드 → 미리보기 → HTML/M
 - 업종별 템플릿 — 6개 업종 × 4개 예시
 - 온보딩 투어 — 첫 방문 4단계 가이드
 - 프레임워크 드래그 정렬 / 검색
+- 프레임워크 상관관계 매트릭스 — 20×20 SVG 히트맵 (정적 45개 관계 + 동적 텍스트 유사도)
 - 키보드 단축키 (Ctrl+Enter, Alt+1~5, Ctrl+E)
 - Supabase 인증 + 관리자 대시보드
 
@@ -126,7 +127,7 @@ API 키 없으면 자동으로 샘플 데이터 사용 (sampleData.ts).
 
 `src/test/helpers.tsx`: `renderWithProviders()` — 모든 Provider(Auth, Settings, Strategy, Toast 등) 래핑.
 테스트 파일: `__tests__/` 디렉토리 (hooks, pages, components, services, utils 각각).
-240개 테스트, 36개 파일.
+248개 테스트, 37개 파일.
 
 ### 주요 훅 (19개)
 

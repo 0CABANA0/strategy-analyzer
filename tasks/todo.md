@@ -48,7 +48,6 @@
 - [x] 자동 저장 표시 — Header에 saving/saved/error 상태 인디케이터
 - [x] 프레임워크 검색 — 이름/설명 실시간 필터링
 - [x] chunkSizeWarningLimit 1000 (html2pdf 이미 동적 import)
-- [x] 테스트 229개 통과 (32개 파일)
 
 ### 보강 작업 (2026-03-12~13)
 
@@ -64,10 +63,14 @@
 - [x] #4 모바일 반응형 점검 — 툴팁 max-w, 모달/비교뷰/SWOT 그리드 브레이크포인트 수정
 - [x] #5 입력 유효성 검증 강화 — HomePage maxLength(200), TeamPage 이메일 regex 검증
 - [x] #6 환경변수 검증 — main.tsx에서 VITE_SUPABASE_URL/ANON_KEY 시작 시 경고
-- [x] #7 Rate Limit 방어 UI — 기존 구현 검토 완료 (이미 적절: RateLimitError → 한글 메시지 → 자동 재시도)
-- [x] #8 E2E 테스트 자동화 — Playwright 설정 + 공개/인증 분리 + 5개 시나리오 파일 (24개 테스트)
-- [x] #9 번들 사이즈 모니터링 — scripts/bundle-size.mjs (raw/gzip 측정 + 변화량 비교 + 임계값 경고)
-- [x] #10 에러 리포팅 — Supabase error_logs 기반 (전역 핸들러 + ErrorBoundary + 배치 전송)
+- [x] #7 Rate Limit 방어 UI — 기존 구현 검토 완료 (이미 적절)
+- [x] #8 E2E 테스트 자동화 — Playwright 설정 + 5개 시나리오 파일 (24개 테스트)
+- [x] #9 번들 사이즈 모니터링 — scripts/bundle-size.mjs
+- [x] #10 에러 리포팅 — Supabase error_logs 기반
+
+### 추가 기능 (2026-03-13)
+
+- [x] 프레임워크 상관관계 매트릭스 — 20×20 SVG 히트맵 + 정적/동적 교차 분석
 
 ## 알려진 이슈 / 수동 작업 필요
 
@@ -79,5 +82,4 @@
 - 다국어(i18n) — 영어 지원
 - PWA/오프라인 — Service Worker + 오프라인 편집
 - 벤치마크 비교 — 업종별 평균 대비 포지션 시각화
-- 프레임워크 상관관계 매트릭스 — 인사이트 교차 분석 히트맵
 - 실시간 협업 — Y.js/Liveblocks 기반 동시 편집
