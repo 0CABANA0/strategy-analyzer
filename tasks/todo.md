@@ -50,17 +50,29 @@
 - [x] chunkSizeWarningLimit 1000 (html2pdf 이미 동적 import)
 - [x] 테스트 229개 통과 (32개 파일)
 
-### 보강 작업 (2026-03-12)
+### 보강 작업 (2026-03-12~13)
 
 - [x] CLAUDE.md 갱신 — 테스트 240개, 신규 훅/기능 반영
 - [x] 공유 링크 버그 수정 — document_id 누락 + URL 줄바꿈
 - [x] 생성 예상 시간 표시 — FrameworkCard에 경과/예상 시간 + 안내 메시지
 
-## 알려진 이슈
+### 10대 개선 (2026-03-13)
 
-- Supabase 마이그레이션 적용 완료: `shared_documents`, `teams`, `team_members`, `team_documents` 테이블 + RLS 정책
-- `strategy_documents` 테이블에 RLS 정책 미설정 — 마이그레이션 추가 필요
-- ComparePage에서 다른 사용자 문서 접근 가능 — user_id 필터 추가 필요
+- [x] #1 CLAUDE.md 갱신 — 전체 아키텍처·기능·훅·테이블 문서화
+- [x] #2 Supabase RLS 검증 — strategy_documents/profiles RLS 마이그레이션 SQL 생성 + ComparePage user_id 필터
+- [x] #3 SEO + OG 메타 갱신 — SharedDocumentPage 동적 meta 태그 (제목·설명·URL)
+- [x] #4 모바일 반응형 점검 — 툴팁 max-w, 모달/비교뷰/SWOT 그리드 브레이크포인트 수정
+- [x] #5 입력 유효성 검증 강화 — HomePage maxLength(200), TeamPage 이메일 regex 검증
+- [x] #6 환경변수 검증 — main.tsx에서 VITE_SUPABASE_URL/ANON_KEY 시작 시 경고
+- [x] #7 Rate Limit 방어 UI — 기존 구현 검토 완료 (이미 적절: RateLimitError → 한글 메시지 → 자동 재시도)
+- [x] #8 E2E 테스트 자동화 — Playwright 설정 + 공개/인증 분리 + 5개 시나리오 파일 (24개 테스트)
+- [x] #9 번들 사이즈 모니터링 — scripts/bundle-size.mjs (raw/gzip 측정 + 변화량 비교 + 임계값 경고)
+- [x] #10 에러 리포팅 — Supabase error_logs 기반 (전역 핸들러 + ErrorBoundary + 배치 전송)
+
+## 알려진 이슈 / 수동 작업 필요
+
+- [ ] `supabase/migration_strategy_documents_rls.sql` — Supabase Dashboard에서 수동 실행 필요 (strategy_documents + profiles RLS)
+- [ ] `supabase/migration_error_logs.sql` — Supabase Dashboard에서 수동 실행 필요 (error_logs 테이블 생성)
 
 ## 향후 개선 후보 (미확정)
 
